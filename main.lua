@@ -26,6 +26,7 @@ local LevelManager = require("src.core.level_manager")
 local WorldManager = require("src.world.world_manager")
 local GameLogic = require("src.core.game_logic")
 local Helpers = require("src.utils.helpers")
+local ShaderManager = require("src.shaders.shader_manager")
 
 -- Game initialization
 function love.load()
@@ -41,6 +42,9 @@ function love.load()
     
     -- Initialize game state
     GameState.initialize()
+    
+    -- Initialize shaders
+    ShaderManager.init()
     
     -- Generate initial game world
     local worldData = WorldManager.generateGameWorld()
@@ -140,6 +144,8 @@ function love.keypressed(key)
         love.load()
         return
     end
+    
+    -- No shader controls (only enemy shaders remain)
     
     local gameState = GameState.getGameState()
     

@@ -449,20 +449,102 @@ end
     @param offsetY number Y offset
 ]]
 function Rendering._drawEnemies(enemies, cellSize, offsetX, offsetY)
+    local ShaderManager = require("src.shaders.shader_manager")
+    local LevelManager = require("src.core.level_manager")
+    
+    -- Get current level theme
+    local currentLevel = LevelManager.getCurrentLevel()
+    local themeType = 0  -- Default to Forest (0)
+    
+    -- Map level number to theme type (subtract 1 to get 0-based index)
+    if currentLevel == 1 then  -- FOREST
+        themeType = 0
+    elseif currentLevel == 2 then  -- CAVE
+        themeType = 1
+    elseif currentLevel == 3 then  -- VOID
+        themeType = 2
+    elseif currentLevel == 4 then  -- ABYSS
+        themeType = 3
+    end
+    
+    -- Theme mapping complete
+    
     -- Handle 2D array structure
     for r = 1, #enemies do
         for c = 1, #enemies[r] do
             if enemies[r][c] then
                 local enemy = enemies[r][c]
                 local x, y = Helpers.getScreenPosition(cellSize, offsetX, offsetY, r, c)
+                local time = love.timer.getTime()
                 
-                -- Draw enemy border
+                -- Apply theme-based sparky shader for enemies
+                local enemyColor = {1, 0.2, 0.8}  -- Base purple/magenta
+                ShaderManager.applyEnemyRetroWave(enemyColor, themeType)
+                
+                -- Draw enemy with full block coverage
                 love.graphics.setColor(GameConfig.COLORS.ENEMY_BORDER)
                 love.graphics.rectangle("fill", x, y, cellSize, cellSize)
                 
-                -- Draw enemy inner
+                -- Draw enemy inner with sparky effect
                 love.graphics.setColor(GameConfig.COLORS.ENEMY_INNER)
+                love.graphics.rectangle("fill", x + 1, y + 1, cellSize - 2, cellSize - 2)
+                
+                -- Get theme-based colors (matching shader)
+                local themeColors = {
+                    {0.0, 1.0, 0.0},  -- Forest: Bright Green
+                    {0.8, 0.4, 0.0},  -- Cave: Orange Brown
+                    {0.0, 0.0, 1.0},  -- Void: Bright Blue
+                    {1.0, 0.0, 0.0}   -- Abyss: Bright Red
+                }
+                local themeColor = themeColors[themeType + 1] or {1, 0.2, 0.8}
+                
+                -- Draw multiple theme-based sparky layers
+                local sparkPulse1 = 0.7 + 0.3 * math.sin(time * 15.0)
+                local sparkPulse2 = 0.6 + 0.4 * math.sin(time * 22.0)
+                local sparkPulse3 = 0.8 + 0.2 * math.sin(time * 8.0)
+                
+                -- Layer 1: Main theme sparky effect
+                love.graphics.setColor(themeColor[1], themeColor[2], themeColor[3], sparkPulse1 * 0.8)
                 love.graphics.rectangle("fill", x + 2, y + 2, cellSize - 4, cellSize - 4)
+                
+                -- Layer 2: Secondary theme sparky effect
+                love.graphics.setColor(themeColor[1] * 1.2, themeColor[2] * 1.2, themeColor[3] * 1.2, sparkPulse2 * 0.6)
+                love.graphics.rectangle("fill", x + 3, y + 3, cellSize - 6, cellSize - 6)
+                
+                -- Layer 3: Core theme sparky effect
+                love.graphics.setColor(themeColor[1] * 1.4, themeColor[2] * 1.4, themeColor[3] * 1.4, sparkPulse3 * 0.9)
+                love.graphics.rectangle("fill", x + 4, y + 4, cellSize - 8, cellSize - 8)
+                
+                -- Draw theme-based electric spark center
+                local centerX = x + cellSize / 2
+                local centerY = y + cellSize / 2
+                local sparkSize = cellSize * 0.2 * sparkPulse1
+                love.graphics.setColor(1, 1, 1, 1)
+                love.graphics.circle("fill", centerX, centerY, sparkSize)
+                
+                -- Draw additional theme-based spark dots
+                local sparkOffset1 = math.sin(time * 12.0 + r + c) * 3
+                local sparkOffset2 = math.cos(time * 8.0 + r + c) * 2
+                love.graphics.setColor(themeColor[1], themeColor[2], themeColor[3], 0.8)
+                love.graphics.circle("fill", centerX + sparkOffset1, centerY + sparkOffset2, sparkSize * 0.5)
+                love.graphics.circle("fill", centerX - sparkOffset2, centerY - sparkOffset1, sparkSize * 0.3)
+                
+                -- Draw theme-based aggressive sparky border
+                love.graphics.setColor(themeColor[1], themeColor[2], themeColor[3], 0.9)
+                love.graphics.setLineWidth(3)
+                local waveOffset1 = math.sin(time * 6.0 + r + c) * 4
+                local waveOffset2 = math.cos(time * 4.0 + r + c) * 3
+                love.graphics.rectangle("line", x + waveOffset1, y + waveOffset2, cellSize, cellSize)
+                
+                -- Draw secondary theme-based sparky border
+                love.graphics.setColor(themeColor[1] * 1.2, themeColor[2] * 1.2, themeColor[3] * 1.2, 0.7)
+                love.graphics.setLineWidth(2)
+                local waveOffset3 = math.sin(time * 8.0 + r + c) * 2
+                local waveOffset4 = math.cos(time * 5.0 + r + c) * 2
+                love.graphics.rectangle("line", x + waveOffset3, y + waveOffset4, cellSize - 2, cellSize - 2)
+                
+                -- Clear enemy shader
+                ShaderManager.clearEnemyShader()
             end
         end
     end
