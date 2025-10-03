@@ -6,6 +6,7 @@ local LevelManager = require("src.core.level_manager")
 local GameState = require("src.core.game_state")
 local WorldManager = require("src.world.world_manager")
 local Helpers = require("src.utils.helpers")
+local PoisonEnemy = require("src.entities.enemies.poison_enemy")
 
 -- Handle item collection when player moves to a new position
 function GameLogic.handleItemCollection(r, c, gameObjects)
@@ -115,6 +116,26 @@ function GameLogic.handlePlayerMovement(key)
                 GameState.setHitFlash(GameConfig.ENEMY_HIT_FLASH_DURATION)
                 return  -- Don't move the player
             end
+        end
+        
+        -- Check for poison enemy collision at new position
+        if gameObjects.poisonEnemies then
+            for _, poisonEnemy in ipairs(gameObjects.poisonEnemies) do
+            if poisonEnemy.r == newR and poisonEnemy.c == newC then
+                -- Player is moving into a poison enemy
+                if playerData.immune and playerData.immunityKills > 0 then
+                    -- Kill poison enemy
+                    poisonEnemy.r = -1  -- Mark for removal
+                    GameState.killEnemy()
+                    -- Allow movement after killing enemy
+                else
+                    -- Poison player and prevent movement
+                    GameState.setPlayerPoisoned(true, GameConfig.POISON_DURATION)
+                    GameState.setHitFlash(GameConfig.ENEMY_HIT_FLASH_DURATION)
+                    return  -- Don't move the player
+                end
+            end
+        end
         end
         
         GameState.setPlayerPosition(newR, newC)
@@ -233,6 +254,102 @@ function GameLogic.updateEnemies(dt)
     
     -- Always update the timer
     GameState.setEnemyMoveTimer(enemyMoveTimer)
+end
+
+-- Update poison enemies and manage poison tiles
+function GameLogic.updatePoisonEnemies(dt)
+    local gameObjects = GameState.getGameObjects()
+    local playerData = GameState.getPlayerData()
+    
+    -- Ensure poison arrays are initialized
+    if not gameObjects.poisonEnemies then
+        gameObjects.poisonEnemies = {}
+    end
+    if not gameObjects.poisonTiles then
+        gameObjects.poisonTiles = {}
+    end
+    
+    local poisonEnemies = gameObjects.poisonEnemies
+    local poisonTiles = gameObjects.poisonTiles
+    
+    -- Update poison enemies
+    for i = #poisonEnemies, 1, -1 do
+        local poisonEnemy = poisonEnemies[i]
+        
+        -- Remove dead enemies
+        if poisonEnemy.r == -1 then
+            table.remove(poisonEnemies, i)
+        else
+            -- Update enemy movement
+            if PoisonEnemy.update(poisonEnemy, gameObjects.maze, GameConfig.MAZE_ROWS, GameConfig.MAZE_COLS, dt) then
+                -- Enemy moved, add trail positions to poison tiles
+                local trail = PoisonEnemy.getTrail(poisonEnemy)
+                for _, pos in ipairs(trail) do
+                    -- Add poison tile at trail position
+                    if not poisonTiles[pos.r] then
+                        poisonTiles[pos.r] = {}
+                    end
+                    poisonTiles[pos.r][pos.c] = {
+                        timer = GameConfig.POISON_TILE_DURATION,
+                        r = pos.r,
+                        c = pos.c
+                    }
+                end
+                
+                -- Check collision with player
+                if PoisonEnemy.checkPlayerCollision(poisonEnemy, playerData) then
+                    local result = PoisonEnemy.handlePlayerCollision(poisonEnemy, playerData)
+                    if result == "killed" then
+                        poisonEnemy.r = -1  -- Mark for removal
+                        GameState.killEnemy()
+                    elseif result == "poisoned" then
+                        GameState.setPlayerPoisoned(true, GameConfig.POISON_DURATION)
+                        GameState.setHitFlash(GameConfig.ENEMY_HIT_FLASH_DURATION)
+                    end
+                end
+            end
+        end
+    end
+    
+    -- Update poison tiles
+    for r = 1, GameConfig.MAZE_ROWS do
+        if poisonTiles[r] then
+            for c = 1, GameConfig.MAZE_COLS do
+                if poisonTiles[r][c] then
+                    poisonTiles[r][c].timer = poisonTiles[r][c].timer - dt
+                    if poisonTiles[r][c].timer <= 0 then
+                        poisonTiles[r][c] = nil
+                    end
+                end
+            end
+        end
+    end
+    
+    -- Check if player is standing on poison tile
+    if poisonTiles[playerData.r] and poisonTiles[playerData.r][playerData.c] then
+        if not GameState.isPlayerPoisoned() then
+            GameState.setPlayerPoisoned(true, GameConfig.POISON_DURATION)
+        end
+    end
+    
+    -- Update the game objects with the modified arrays
+    gameObjects.poisonEnemies = poisonEnemies
+    gameObjects.poisonTiles = poisonTiles
+end
+
+-- Update poison damage over time
+function GameLogic.updatePoisonDamage(dt)
+    local playerData = GameState.getPlayerData()
+    
+    if GameState.isPlayerPoisoned() then
+        GameState.updatePoisonTimer(dt)
+        
+        -- Apply poison damage every second
+        local poisonTimer = GameState.getPoisonTimer()
+        if poisonTimer > 0 and poisonTimer % 1.0 < dt then
+            GameState.takeDamage(GameConfig.POISON_DAMAGE)
+        end
+    end
 end
 
 return GameLogic

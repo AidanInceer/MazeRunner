@@ -4,6 +4,7 @@ local MazeGenerator = require("src.world.maze_generator")
 local LevelManager = require("src.core.level_manager")
 local GameConfig = require("src.config.game_config")
 local Helpers = require("src.utils.helpers")
+local PoisonEnemy = require("src.entities.enemies.poison_enemy")
 
 -- Place a special tile (spawn or finale) on the maze edges
 function WorldManager.placeSpecialTile(maze, rows, cols, tileType, avoidR, avoidC)
@@ -176,6 +177,8 @@ function WorldManager.generateGameWorld()
     local enemyCount = LevelManager.getEnemyCount()
     local enemies = WorldManager.placeEnemies(maze, rows, cols, enemyCount)
     
+    -- Place poison enemies
+    local poisonEnemies = WorldManager.placePoisonEnemies(maze, rows, cols, GameConfig.POISON_ENEMY_COUNT)
     return {
         maze = maze,
         spawnR = spawnR,
@@ -187,8 +190,55 @@ function WorldManager.generateGameWorld()
         healthBlobs = healthBlobs,
         immunityBlobs = immunityBlobs,
         enemies = enemies,
+        poisonEnemies = poisonEnemies,
+        poisonTiles = {},
         visited = visited
     }
+end
+
+-- Place poison enemies on the maze
+function WorldManager.placePoisonEnemies(maze, rows, cols, count)
+    local poisonEnemies = {}
+    local placed = 0
+    local attempts = 0
+    local maxAttempts = 500  -- Increased attempts
+    
+    while placed < count and attempts < maxAttempts do
+        attempts = attempts + 1
+        local r = math.random(1, rows)
+        local c = math.random(1, cols)
+        
+        -- Check if position is walkable (empty)
+        if not maze[r][c] then
+            -- Check if position is not occupied by another poison enemy
+            local positionOccupied = false
+            for _, enemy in ipairs(poisonEnemies) do
+                if enemy.r == r and enemy.c == c then
+                    positionOccupied = true
+                    break
+                end
+            end
+            
+            if not positionOccupied then
+                table.insert(poisonEnemies, PoisonEnemy.create(r, c))
+                placed = placed + 1
+            end
+        end
+    end
+    
+    -- If we couldn't place enough enemies, place them at fixed positions
+    while placed < count do
+        local r = 5 + placed
+        local c = 5 + placed
+        if r <= rows and c <= cols then
+            table.insert(poisonEnemies, PoisonEnemy.create(r, c))
+            placed = placed + 1
+        else
+            break
+        end
+    end
+    
+    return poisonEnemies
 end
 
 return WorldManager

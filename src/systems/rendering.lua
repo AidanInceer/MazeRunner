@@ -54,7 +54,7 @@ function Rendering.drawMainMenu(screenWidth, screenHeight, startButton, colors)
     love.graphics.setFont(love.graphics.newFont(32))
     
     -- Subtitle glow
-    love.graphics.seftColor(0.3, 0.3, 0.8, 0.4 * pulse)
+    love.graphics.setColor(0.3, 0.3, 0.8, 0.4 * pulse)
     for i = -2, 2 do
         for j = -2, 2 do
             if i ~= 0 or j ~= 0 then
@@ -117,14 +117,20 @@ function Rendering.drawGame(screenWidth, screenHeight, maze, gameObjects, player
     -- Draw maze tiles
     Rendering._drawMazeTiles(maze, rows, cols, cellSize, offsetX, offsetY, mouseX, mouseY, gameObjects, colors)
     
-    -- Draw enemies
+    -- Draw enemies (with shaders)
     Rendering._drawEnemies(gameObjects.enemies, cellSize, offsetX, offsetY)
+    
+    -- Draw poison tiles (bright green trail)
+    Rendering._drawPoisonTiles(gameObjects.poisonTiles, cellSize, offsetX, offsetY)
     
     -- Draw player
     Rendering._drawPlayer(playerData, cellSize, offsetX, offsetY)
     
     -- Draw effects
     Rendering._drawEffects(animationData, screenWidth, screenHeight)
+    
+    -- Draw poison enemies LAST - on top of everything
+    Rendering._drawPoisonEnemies(gameObjects.poisonEnemies, cellSize, offsetX, offsetY)
 end
 
 --[[
@@ -184,12 +190,21 @@ function Rendering.drawUI(playerData, screenHeight, restartButton, colors)
         love.graphics.print("Not Immune", boxX + 20, startY + lineHeight * 3)
     end
     
+    -- Draw poison status
+    if GameState.isPlayerPoisoned() then
+        local poisonTimer = GameState.getPoisonTimer()
+        love.graphics.setColor(0.2, 0.8, 0.2, 1)  -- Green for poison
+        love.graphics.print("POISONED! " .. string.format("%.1fs", poisonTimer), boxX + 20, startY + lineHeight * 4)
+    end
+    
     -- Draw enemies killed
     love.graphics.setColor(colors.ui_text)
-    love.graphics.print("Enemies Killed: " .. playerData.totalEnemiesKilled, boxX + 20, startY + lineHeight * 4)
+    local enemiesKilledY = GameState.isPlayerPoisoned() and startY + lineHeight * 5 or startY + lineHeight * 4
+    love.graphics.print("Enemies Killed: " .. playerData.totalEnemiesKilled, boxX + 20, enemiesKilledY)
     
     -- Draw health bar with better positioning
-    Rendering._drawHealthBar(playerData.health, playerData.maxHealth, boxX + 20, startY + lineHeight * 5 + 5)
+    local healthBarY = GameState.isPlayerPoisoned() and startY + lineHeight * 6 + 5 or startY + lineHeight * 5 + 5
+    Rendering._drawHealthBar(playerData.health, playerData.maxHealth, boxX + 20, healthBarY)
     
     -- Draw restart button with better positioning
     restartButton.x = 15
@@ -875,6 +890,79 @@ function Rendering._drawEnhancedButton(button, text, fontSize, colors)
     love.graphics.print(text, 
         button.x + (button.width - textWidth) / 2,
         button.y + (button.height - textHeight) / 2)
+end
+
+-- Draw poison enemies
+function Rendering._drawPoisonEnemies(poisonEnemies, cellSize, offsetX, offsetY)
+    if not poisonEnemies then
+        return
+    end
+    
+    for _, enemy in ipairs(poisonEnemies) do
+        local x, y = Helpers.getScreenPosition(cellSize, offsetX, offsetY, enemy.r, enemy.c)
+        
+        -- Draw poison enemy with pulsing effect
+        local pulse = 0.8 + 0.2 * math.sin(love.timer.getTime() * 4)
+        
+        -- Outer glow (bright purple)
+        love.graphics.setColor(0.8, 0.2, 0.8, 0.9 * pulse)
+        love.graphics.rectangle("fill", x - 10, y - 10, cellSize + 20, cellSize + 20)
+        
+        -- Main body (bright purple)
+        love.graphics.setColor(0.8, 0.2, 0.8, 1)
+        love.graphics.rectangle("fill", x - 2, y - 2, cellSize + 4, cellSize + 4)
+        
+        -- Center dot (bright yellow)
+        love.graphics.setColor(1, 1, 0, 1)
+        local centerX, centerY = x + cellSize/2, y + cellSize/2
+        love.graphics.circle("fill", centerX, centerY, 8)
+        
+        -- Border for visibility (black)
+        love.graphics.setColor(0, 0, 0, 1)
+        love.graphics.setLineWidth(3)
+        love.graphics.rectangle("line", x - 2, y - 2, cellSize + 4, cellSize + 4)
+        love.graphics.setLineWidth(1)
+    end
+end
+
+-- Draw poison tiles
+function Rendering._drawPoisonTiles(poisonTiles, cellSize, offsetX, offsetY)
+    if not poisonTiles then
+        return
+    end
+    
+    for r = 1, GameConfig.MAZE_ROWS do
+        if poisonTiles[r] then
+            for c = 1, GameConfig.MAZE_COLS do
+                if poisonTiles[r][c] then
+                    local poisonTile = poisonTiles[r][c]
+                    local x, y = Helpers.getScreenPosition(cellSize, offsetX, offsetY, r, c)
+                    
+                    -- Calculate fade based on remaining time
+                    local fade = poisonTile.timer / GameConfig.POISON_TILE_DURATION
+                    local alpha = 0.6 + 0.4 * fade  -- More visible
+                    
+                    -- Draw poison tile with pulsing effect
+                    local pulse = 0.8 + 0.2 * math.sin(love.timer.getTime() * 8)
+                    
+                    -- Draw poison tile (bright pink/magenta)
+                    love.graphics.setColor(1, 0.4, 1, alpha * pulse)
+                    love.graphics.rectangle("fill", x + 2, y + 2, cellSize - 4, cellSize - 4)
+                    
+                    -- Draw poison symbol (skull) - more visible
+                    love.graphics.setColor(1, 1, 1, alpha * 0.9)
+                    local centerX, centerY = x + cellSize/2, y + cellSize/2
+                    love.graphics.circle("fill", centerX, centerY - 3, 3)
+                    love.graphics.circle("fill", centerX - 3, centerY + 2, 2)
+                    love.graphics.circle("fill", centerX + 3, centerY + 2, 2)
+                    
+                    -- Draw border for visibility
+                    love.graphics.setColor(0, 0, 0, alpha * 0.5)
+                    love.graphics.rectangle("line", x + 2, y + 2, cellSize - 4, cellSize - 4)
+                end
+            end
+        end
+    end
 end
 
 return Rendering

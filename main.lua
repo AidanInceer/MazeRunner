@@ -74,6 +74,10 @@ function love.update(dt)
     -- Update enemy movement
     GameLogic.updateEnemies(dt)
     
+    -- Update poison enemies and poison damage
+    GameLogic.updatePoisonEnemies(dt)
+    GameLogic.updatePoisonDamage(dt)
+    
     -- Update spike animation
     GameState.updateSpikeAnimation(dt)
 end

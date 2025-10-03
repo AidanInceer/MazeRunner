@@ -17,12 +17,19 @@ GameConfig.HEALTH_BLOB_COUNT = 3
 GameConfig.IMMUNITY_BLOB_COUNT = 5
 GameConfig.IMMUNITY_BLOB_KILLS = 1
 GameConfig.ENEMY_COUNT = 5
+GameConfig.POISON_ENEMY_COUNT = 2
 
 -- Enemy settings
 GameConfig.ENEMY_MOVE_INTERVAL = 0.6  -- seconds between moves
 GameConfig.ENEMY_DAMAGE = 20
 GameConfig.DAMAGE_TILE_DAMAGE = 10
 GameConfig.HEALTH_RESTORE = 10
+
+-- Poison settings
+GameConfig.POISON_DAMAGE = 3
+GameConfig.POISON_DURATION = 3  -- seconds of poison effect on player
+GameConfig.POISON_TILE_DURATION = 2  -- seconds poison tile lasts
+GameConfig.POISON_TRAIL_LENGTH = 4  -- number of previous positions to poison
 
 -- Animation settings
 GameConfig.HIT_FLASH_DURATION = 0.3

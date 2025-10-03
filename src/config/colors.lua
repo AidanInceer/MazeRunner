@@ -77,7 +77,9 @@ Colors.ITEMS = {
     HEALTH_BLOB = {0, 1, 0, 1},  -- Green
     HEALTH_CROSS = {1, 1, 1, 1},
     IMMUNITY_BLOB = {1, 0, 0, 1},  -- Red
-    IMMUNITY_SHIELD = {1, 1, 1, 1}
+    IMMUNITY_SHIELD = {1, 1, 1, 1},
+    POISON_TILE = {0.2, 0.8, 0.2, 0.7},  -- Semi-transparent green
+    POISON_ENEMY = {0.4, 0.8, 0.4, 1}  -- Light green
 }
 
 -- UI colors

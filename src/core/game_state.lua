@@ -30,6 +30,10 @@ local state = {
     immunityKills = 0,
     totalEnemiesKilled = 0,
     
+    -- Poison system
+    playerPoisoned = false,
+    poisonTimer = 0,
+    
     -- Game objects
     maze = {},
     collectibles = {},
@@ -37,6 +41,8 @@ local state = {
     healthBlobs = {},
     immunityBlobs = {},
     enemies = {},
+    poisonEnemies = {},
+    poisonTiles = {},
     visited = {},
     
     -- Animation and effects
@@ -271,6 +277,8 @@ function GameState.getGameObjects()
         healthBlobs = state.healthBlobs,
         immunityBlobs = state.immunityBlobs,
         enemies = state.enemies,
+        poisonEnemies = state.poisonEnemies,
+        poisonTiles = state.poisonTiles,
         visited = state.visited
     }
 end
@@ -287,7 +295,10 @@ function GameState.setGameObjects(objects)
     state.healthBlobs = objects.healthBlobs or state.healthBlobs
     state.immunityBlobs = objects.immunityBlobs or state.immunityBlobs
     state.enemies = objects.enemies or state.enemies
+    state.poisonEnemies = objects.poisonEnemies
+    state.poisonTiles = objects.poisonTiles
     state.visited = objects.visited or state.visited
+    
 end
 
 --[[
@@ -416,6 +427,86 @@ end
 ]]
 function GameState.updateSpikeAnimation(dt)
     state.spikeAnimationTime = state.spikeAnimationTime + dt
+end
+
+--[[
+    Gets the poison state
+    
+    @return boolean True if player is poisoned
+]]
+function GameState.isPlayerPoisoned()
+    return state.playerPoisoned
+end
+
+--[[
+    Sets the poison state
+    
+    @param poisoned boolean Whether player is poisoned
+    @param duration number Duration of poison effect
+]]
+function GameState.setPlayerPoisoned(poisoned, duration)
+    state.playerPoisoned = poisoned
+    state.poisonTimer = duration or 0
+end
+
+--[[
+    Gets the poison timer
+    
+    @return number Poison timer value
+]]
+function GameState.getPoisonTimer()
+    return state.poisonTimer
+end
+
+--[[
+    Updates the poison timer
+    
+    @param dt number Delta time
+]]
+function GameState.updatePoisonTimer(dt)
+    if state.playerPoisoned then
+        state.poisonTimer = state.poisonTimer - dt
+        if state.poisonTimer <= 0 then
+            state.playerPoisoned = false
+            state.poisonTimer = 0
+        end
+    end
+end
+
+--[[
+    Gets poison tiles
+    
+    @return table Poison tiles array
+]]
+function GameState.getPoisonTiles()
+    return state.poisonTiles
+end
+
+--[[
+    Sets poison tiles
+    
+    @param poisonTiles table Poison tiles array
+]]
+function GameState.setPoisonTiles(poisonTiles)
+    state.poisonTiles = poisonTiles
+end
+
+--[[
+    Gets poison enemies
+    
+    @return table Poison enemies array
+]]
+function GameState.getPoisonEnemies()
+    return state.poisonEnemies
+end
+
+--[[
+    Sets poison enemies
+    
+    @param poisonEnemies table Poison enemies array
+]]
+function GameState.setPoisonEnemies(poisonEnemies)
+    state.poisonEnemies = poisonEnemies
 end
 
 return GameState
