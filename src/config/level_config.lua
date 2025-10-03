@@ -143,8 +143,8 @@ LevelConfig.COLORS = {
 -- Level progression settings
 LevelConfig.LEVEL_SETTINGS = {
     [LevelConfig.THEMES.FOREST] = {
-        baseEnemyCount = 9,
-        enemySpeed = 0.8,
+        baseEnemyCount = 15,
+        enemySpeed = 0.6,
         collectibleCount = 8,
         damageTileCount = 6,
         healthBlobCount = 2,
@@ -152,7 +152,7 @@ LevelConfig.LEVEL_SETTINGS = {
         requiredScore = 10
     },
     [LevelConfig.THEMES.CAVE] = {
-        baseEnemyCount = 12,
+        baseEnemyCount = 25,
         enemySpeed = 0.7,
         collectibleCount = 10,
         damageTileCount = 8,
@@ -161,8 +161,8 @@ LevelConfig.LEVEL_SETTINGS = {
         requiredScore = 10
     },
     [LevelConfig.THEMES.VOID] = {
-        baseEnemyCount = 15,
-        enemySpeed = 0.6,
+        baseEnemyCount = 35,
+        enemySpeed = 0.8,
         collectibleCount = 12,
         damageTileCount = 10,
         healthBlobCount = 3,
@@ -170,8 +170,8 @@ LevelConfig.LEVEL_SETTINGS = {
         requiredScore = 10
     },
     [LevelConfig.THEMES.ABYSS] = {
-        baseEnemyCount = 18,
-        enemySpeed = 0.5,
+        baseEnemyCount = 50,
+        enemySpeed = 1.0,
         collectibleCount = 15,
         damageTileCount = 12,
         healthBlobCount = 4,
