@@ -337,7 +337,7 @@ function Rendering._drawWallTile(tileType, x, y, cellSize, isHovered, colors)
         love.graphics.rectangle("fill", x + 2, y + 2, cellSize - 4, cellSize - 4)
         
         -- Draw down arrow
-        love.graphics.setColor(1, 1, 1, 1)  -- White arrow
+        love.graphics.setColor(GameConfig.COLORS.TILE.FINALE_ARROW)
         local centerX = x + cellSize / 2
         local centerY = y + cellSize / 2
         local arrowSize = cellSize * 0.3
@@ -410,7 +410,7 @@ function Rendering._drawTileItems(x, y, cellSize, gameObjects, r, c)
     
     -- Draw collectible
     if gameObjects.collectibles[r] and gameObjects.collectibles[r][c] then
-        love.graphics.setColor(GameConfig.COLORS.COLLECTIBLE)
+        love.graphics.setColor(GameConfig.COLORS.ITEMS.COLLECTIBLE)
         love.graphics.circle("fill", centerX, centerY, cellSize / 6)
     end
     
@@ -421,11 +421,11 @@ function Rendering._drawTileItems(x, y, cellSize, gameObjects, r, c)
         local spikePulse2 = 0.5 + 0.5 * math.sin(spikeTime * 8.0 + r * 2 + c * 2)
         
         -- Draw base damage tile
-        love.graphics.setColor(GameConfig.COLORS.DAMAGE_TILE)
+        love.graphics.setColor(GameConfig.COLORS.ITEMS.DAMAGE_TILE)
         love.graphics.rectangle("fill", x + 2, y + 2, cellSize - 4, cellSize - 4)
         
         -- Draw animated spikes with multiple layers
-        love.graphics.setColor(0.2, 0.2, 0.2, spikePulse)
+        love.graphics.setColor(GameConfig.COLORS.ITEMS.DAMAGE_SPIKES[1], GameConfig.COLORS.ITEMS.DAMAGE_SPIKES[2], GameConfig.COLORS.ITEMS.DAMAGE_SPIKES[3], spikePulse)
         local spikeSize = cellSize * 0.25 * spikePulse
         local spikeSize2 = cellSize * 0.2 * spikePulse2
         
@@ -458,7 +458,7 @@ function Rendering._drawTileItems(x, y, cellSize, gameObjects, r, c)
         love.graphics.polygon("fill", centerSpike)
         
         -- Draw additional inner spikes for more detail
-        love.graphics.setColor(0.1, 0.1, 0.1, spikePulse2 * 0.8)
+        love.graphics.setColor(GameConfig.COLORS.ITEMS.DAMAGE_SPIKES_INNER[1], GameConfig.COLORS.ITEMS.DAMAGE_SPIKES_INNER[2], GameConfig.COLORS.ITEMS.DAMAGE_SPIKES_INNER[3], spikePulse2 * 0.8)
         local innerSpikeSize = cellSize * 0.08 * spikePulse2
         local innerSpikes = {
             {centerX - cellSize * 0.2, centerY - cellSize * 0.2, centerX - cellSize * 0.2 - innerSpikeSize, centerY - cellSize * 0.2, centerX - cellSize * 0.2, centerY - cellSize * 0.2 - innerSpikeSize},  -- Inner top-left
@@ -474,20 +474,20 @@ function Rendering._drawTileItems(x, y, cellSize, gameObjects, r, c)
     
     -- Draw health blob
     if gameObjects.healthBlobs[r] and gameObjects.healthBlobs[r][c] then
-        love.graphics.setColor(GameConfig.COLORS.HEALTH_BLOB)
+        love.graphics.setColor(GameConfig.COLORS.ITEMS.HEALTH_BLOB)
         love.graphics.circle("fill", centerX, centerY, cellSize / 5)
         -- Add cross
-        love.graphics.setColor(1, 1, 1, 1)
+        love.graphics.setColor(GameConfig.COLORS.ITEMS.HEALTH_CROSS)
         love.graphics.rectangle("fill", centerX - 1, centerY - 3, 2, 6)
         love.graphics.rectangle("fill", centerX - 3, centerY - 1, 6, 2)
     end
     
     -- Draw immunity blob
     if gameObjects.immunityBlobs[r] and gameObjects.immunityBlobs[r][c] then
-        love.graphics.setColor(GameConfig.COLORS.IMMUNITY_BLOB)
+        love.graphics.setColor(GameConfig.COLORS.ITEMS.IMMUNITY_BLOB)
         love.graphics.circle("fill", centerX, centerY, cellSize / 5)
         -- Add shield
-        love.graphics.setColor(1, 1, 1, 1)
+        love.graphics.setColor(GameConfig.COLORS.ITEMS.IMMUNITY_SHIELD)
         love.graphics.rectangle("fill", centerX - 2, centerY - 4, 4, 6)
         love.graphics.rectangle("fill", centerX - 1, centerY - 5, 2, 2)
     end
@@ -535,19 +535,19 @@ function Rendering._drawEnemies(enemies, cellSize, offsetX, offsetY)
                 ShaderManager.applyEnemyRetroWave(enemyColor, themeType)
                 
                 -- Draw enemy with full block coverage
-                love.graphics.setColor(GameConfig.COLORS.ENEMY_BORDER)
+                love.graphics.setColor(GameConfig.COLORS.ENEMY.BORDER)
                 love.graphics.rectangle("fill", x, y, cellSize, cellSize)
                 
                 -- Draw enemy inner with sparky effect
-                love.graphics.setColor(GameConfig.COLORS.ENEMY_INNER)
+                love.graphics.setColor(GameConfig.COLORS.ENEMY.INNER)
                 love.graphics.rectangle("fill", x + 1, y + 1, cellSize - 2, cellSize - 2)
                 
                 -- Get theme-based colors (matching shader)
                 local themeColors = {
-                    {0.0, 1.0, 0.0},  -- Forest: Bright Green
-                    {0.8, 0.4, 0.0},  -- Cave: Orange Brown
-                    {0.0, 0.0, 1.0},  -- Void: Bright Blue
-                    {1.0, 0.0, 0.0}   -- Abyss: Bright Red
+                    GameConfig.COLORS.ENEMY.THEME_FOREST,
+                    GameConfig.COLORS.ENEMY.THEME_CAVE,
+                    GameConfig.COLORS.ENEMY.THEME_VOID,
+                    GameConfig.COLORS.ENEMY.THEME_ABYSS
                 }
                 local themeColor = themeColors[themeType + 1] or {1, 0.2, 0.8}
                 
@@ -618,35 +618,35 @@ function Rendering._drawPlayer(playerData, cellSize, offsetX, offsetY)
     -- Draw pulsing outer glow
     local pulse = 0.8 + 0.2 * math.sin(time * 4)
     if playerData.immune then
-        love.graphics.setColor(1, 1, 0, 0.3 * pulse)  -- Yellow glow
+        love.graphics.setColor(GameConfig.COLORS.PLAYER.GLOW_YELLOW[1], GameConfig.COLORS.PLAYER.GLOW_YELLOW[2], GameConfig.COLORS.PLAYER.GLOW_YELLOW[3], GameConfig.COLORS.PLAYER.GLOW_YELLOW[4] * pulse)
     else
-        love.graphics.setColor(0, 0.8, 1, 0.3 * pulse)  -- Blue glow
+        love.graphics.setColor(GameConfig.COLORS.PLAYER.GLOW_BLUE[1], GameConfig.COLORS.PLAYER.GLOW_BLUE[2], GameConfig.COLORS.PLAYER.GLOW_BLUE[3], GameConfig.COLORS.PLAYER.GLOW_BLUE[4] * pulse)
     end
     love.graphics.rectangle("fill", x - 3, y - 3, cellSize + 6, cellSize + 6)
     
     -- Draw outer border with highlight
     if playerData.immune then
-        love.graphics.setColor(GameConfig.COLORS.PLAYER_IMMUNE_BORDER)
+        love.graphics.setColor(GameConfig.COLORS.PLAYER.IMMUNE_BORDER)
     else
-        love.graphics.setColor(GameConfig.COLORS.PLAYER_BORDER)
+        love.graphics.setColor(GameConfig.COLORS.PLAYER.BORDER)
     end
     love.graphics.rectangle("fill", x, y, cellSize, cellSize)
     
     -- Draw border highlight
-    love.graphics.setColor(1, 1, 1, 0.4)
+    love.graphics.setColor(GameConfig.COLORS.UI.HIGHLIGHT)
     love.graphics.rectangle("fill", x + 1, y + 1, cellSize - 2, 2)
     love.graphics.rectangle("fill", x + 1, y + 1, 2, cellSize - 2)
     
     -- Draw player inner with gradient effect
     if playerData.immune then
-        love.graphics.setColor(GameConfig.COLORS.PLAYER_IMMUNE_INNER)
+        love.graphics.setColor(GameConfig.COLORS.PLAYER.IMMUNE_INNER)
     else
-        love.graphics.setColor(GameConfig.COLORS.PLAYER_INNER)
+        love.graphics.setColor(GameConfig.COLORS.PLAYER.INNER)
     end
     love.graphics.rectangle("fill", x + 2, y + 2, cellSize - 4, cellSize - 4)
     
     -- Draw inner highlight
-    love.graphics.setColor(1, 1, 1, 0.3)
+    love.graphics.setColor(GameConfig.COLORS.UI.HIGHLIGHT[1], GameConfig.COLORS.UI.HIGHLIGHT[2], GameConfig.COLORS.UI.HIGHLIGHT[3], 0.3)
     love.graphics.rectangle("fill", x + 3, y + 3, cellSize - 6, 2)
     love.graphics.rectangle("fill", x + 3, y + 3, 2, cellSize - 6)
     
@@ -656,19 +656,19 @@ function Rendering._drawPlayer(playerData, cellSize, offsetX, offsetY)
     local dotSize = cellSize * 0.2
     
     if playerData.immune then
-        love.graphics.setColor(1, 1, 0, 1)  -- Yellow dot
+        love.graphics.setColor(GameConfig.COLORS.PLAYER.IMMUNE_DOT)
     else
-        love.graphics.setColor(1, 1, 1, 1)  -- White dot
+        love.graphics.setColor(GameConfig.COLORS.PLAYER.CENTER_DOT)
     end
     love.graphics.circle("fill", centerX, centerY, dotSize)
     
     -- Draw immunity glow effect
     if playerData.immune then
-        love.graphics.setColor(GameConfig.COLORS.IMMUNITY_GLOW)
+        love.graphics.setColor(GameConfig.COLORS.PARTICLES.IMMUNITY_GLOW)
         love.graphics.rectangle("fill", x - 2, y - 2, cellSize + 4, cellSize + 4)
         
         -- Draw pulsing immunity ring
-        love.graphics.setColor(1, 1, 0, 0.6 * pulse)
+        love.graphics.setColor(GameConfig.COLORS.PLAYER.IMMUNE_DOT[1], GameConfig.COLORS.PLAYER.IMMUNE_DOT[2], GameConfig.COLORS.PLAYER.IMMUNE_DOT[3], 0.6 * pulse)
         love.graphics.setLineWidth(3)
         love.graphics.rectangle("line", x - 1, y - 1, cellSize + 2, cellSize + 2)
     end
@@ -685,8 +685,8 @@ function Rendering._drawEffects(animationData, screenWidth, screenHeight)
     -- Draw hit flash
     if animationData.hitFlashTimer > 0 then
         local alpha = animationData.hitFlashTimer / GameConfig.HIT_FLASH_DURATION
-        love.graphics.setColor(GameConfig.COLORS.HIT_FLASH[1], GameConfig.COLORS.HIT_FLASH[2], 
-                             GameConfig.COLORS.HIT_FLASH[3], GameConfig.COLORS.HIT_FLASH[4] * alpha)
+        love.graphics.setColor(GameConfig.COLORS.PARTICLES.HIT_FLASH[1], GameConfig.COLORS.PARTICLES.HIT_FLASH[2], 
+                             GameConfig.COLORS.PARTICLES.HIT_FLASH[3], GameConfig.COLORS.PARTICLES.HIT_FLASH[4] * alpha)
         love.graphics.rectangle("fill", 0, 0, screenWidth, screenHeight)
     end
     
@@ -694,14 +694,14 @@ function Rendering._drawEffects(animationData, screenWidth, screenHeight)
     for _, particle in ipairs(animationData.collectParticles) do
         local alpha = particle.life / particle.maxLife
         if particle.color == "green" then
-            love.graphics.setColor(GameConfig.COLORS.PARTICLE_GREEN[1], GameConfig.COLORS.PARTICLE_GREEN[2], 
-                                 GameConfig.COLORS.PARTICLE_GREEN[3], GameConfig.COLORS.PARTICLE_GREEN[4] * alpha)
+            love.graphics.setColor(GameConfig.COLORS.PARTICLES.GREEN[1], GameConfig.COLORS.PARTICLES.GREEN[2], 
+                                 GameConfig.COLORS.PARTICLES.GREEN[3], GameConfig.COLORS.PARTICLES.GREEN[4] * alpha)
         elseif particle.color == "red" then
-            love.graphics.setColor(GameConfig.COLORS.PARTICLE_RED[1], GameConfig.COLORS.PARTICLE_RED[2], 
-                                 GameConfig.COLORS.PARTICLE_RED[3], GameConfig.COLORS.PARTICLE_RED[4] * alpha)
+            love.graphics.setColor(GameConfig.COLORS.PARTICLES.RED[1], GameConfig.COLORS.PARTICLES.RED[2], 
+                                 GameConfig.COLORS.PARTICLES.RED[3], GameConfig.COLORS.PARTICLES.RED[4] * alpha)
         else
-            love.graphics.setColor(GameConfig.COLORS.PARTICLE_YELLOW[1], GameConfig.COLORS.PARTICLE_YELLOW[2], 
-                                 GameConfig.COLORS.PARTICLE_YELLOW[3], GameConfig.COLORS.PARTICLE_YELLOW[4] * alpha)
+            love.graphics.setColor(GameConfig.COLORS.PARTICLES.YELLOW[1], GameConfig.COLORS.PARTICLES.YELLOW[2], 
+                                 GameConfig.COLORS.PARTICLES.YELLOW[3], GameConfig.COLORS.PARTICLES.YELLOW[4] * alpha)
         end
         love.graphics.circle("fill", particle.x, particle.y, particle.size * alpha)
     end
@@ -750,10 +750,10 @@ function Rendering._drawHealthBar(health, maxHealth, x, y)
     local barHeight = GameConfig.HEALTH_BAR_HEIGHT
     
     -- Health bar background with inner shadow
-    love.graphics.setColor(0.2, 0.1, 0.1, 1)
+    love.graphics.setColor(GameConfig.COLORS.HEALTH.BACKGROUND)
     love.graphics.rectangle("fill", x, y, barWidth, barHeight)
     
-    love.graphics.setColor(GameConfig.COLORS.HEALTH_BAR_BACKGROUND)
+    love.graphics.setColor(GameConfig.COLORS.HEALTH.BACKGROUND[1] * 0.8, GameConfig.COLORS.HEALTH.BACKGROUND[2] * 0.8, GameConfig.COLORS.HEALTH.BACKGROUND[3] * 0.8, 1)
     love.graphics.rectangle("fill", x + 1, y + 1, barWidth - 2, barHeight - 2)
     
     -- Health bar fill with gradient
@@ -784,11 +784,11 @@ function Rendering._drawHealthBar(health, maxHealth, x, y)
     end
     
     -- Health bar border with double border effect
-    love.graphics.setColor(0.1, 0.1, 0.1, 1)
+    love.graphics.setColor(GameConfig.COLORS.UI.SHADOW)
     love.graphics.setLineWidth(2)
     love.graphics.rectangle("line", x, y, barWidth, barHeight)
     
-    love.graphics.setColor(GameConfig.COLORS.HEALTH_BAR_BORDER)
+    love.graphics.setColor(GameConfig.COLORS.HEALTH.BORDER)
     love.graphics.setLineWidth(1)
     love.graphics.rectangle("line", x + 1, y + 1, barWidth - 2, barHeight - 2)
 end

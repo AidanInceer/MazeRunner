@@ -25,120 +25,9 @@ LevelConfig.LEVEL_DESCRIPTIONS = {
     [LevelConfig.THEMES.ABYSS] = "Descend into the fiery depths of hell itself."
 }
 
--- Level color schemes
-LevelConfig.COLORS = {
-    [LevelConfig.THEMES.FOREST] = {
-        -- Background
-        background = {0.1, 0.3, 0.1, 1},
-        
-        -- Walls
-        wall_border = {0.2, 0.4, 0.1, 1},
-        wall_inner = {0.4, 0.6, 0.2, 1},
-        wall_hover_border = {0.1, 0.3, 0.05, 1},
-        wall_hover_inner = {0.3, 0.5, 0.15, 1},
-        
-        -- Walkable areas
-        walkable_border = {0.15, 0.35, 0.15, 1},
-        walkable_inner = {0.25, 0.45, 0.25, 1},
-        walkable_hover_border = {0.1, 0.25, 0.1, 1},
-        walkable_hover_inner = {0.2, 0.35, 0.2, 1},
-        
-        -- Special tiles
-        spawn_border = {0.1, 0.3, 0.6, 1},
-        spawn_hover = {0.05, 0.2, 0.4, 1},
-        finale_border = {0.0, 0.8, 0.0, 1},
-        finale_hover = {0.0, 0.6, 0.0, 1},
-        finale_glow = {0.0, 1.0, 0.0, 0.4},
-        
-        -- UI
-        ui_background = {0.05, 0.15, 0.05, 0.9},
-        ui_text = {0.8, 1.0, 0.8, 1}
-    },
-    
-    [LevelConfig.THEMES.CAVE] = {
-        -- Background
-        background = {0.1, 0.1, 0.2, 1},
-        
-        -- Walls
-        wall_border = {0.3, 0.3, 0.4, 1},
-        wall_inner = {0.5, 0.5, 0.6, 1},
-        wall_hover_border = {0.2, 0.2, 0.3, 1},
-        wall_hover_inner = {0.4, 0.4, 0.5, 1},
-        
-        -- Walkable areas
-        walkable_border = {0.15, 0.15, 0.25, 1},
-        walkable_inner = {0.25, 0.25, 0.35, 1},
-        walkable_hover_border = {0.1, 0.1, 0.2, 1},
-        walkable_hover_inner = {0.2, 0.2, 0.3, 1},
-        
-        -- Special tiles
-        spawn_border = {0.2, 0.4, 0.8, 1},
-        spawn_hover = {0.1, 0.2, 0.6, 1},
-        finale_border = {0.0, 0.8, 1.0, 1},
-        finale_hover = {0.0, 0.6, 0.8, 1},
-        finale_glow = {0.0, 0.8, 1.0, 0.4},
-        
-        -- UI
-        ui_background = {0.05, 0.05, 0.15, 0.9},
-        ui_text = {0.8, 0.8, 1.0, 1}
-    },
-    
-    [LevelConfig.THEMES.VOID] = {
-        -- Background
-        background = {0.05, 0.05, 0.1, 1},
-        
-        -- Walls
-        wall_border = {0.2, 0.1, 0.3, 1},
-        wall_inner = {0.4, 0.2, 0.5, 1},
-        wall_hover_border = {0.1, 0.05, 0.2, 1},
-        wall_hover_inner = {0.3, 0.15, 0.4, 1},
-        
-        -- Walkable areas
-        walkable_border = {0.1, 0.05, 0.15, 1},
-        walkable_inner = {0.15, 0.1, 0.2, 1},
-        walkable_hover_border = {0.05, 0.02, 0.1, 1},
-        walkable_hover_inner = {0.1, 0.05, 0.15, 1},
-        
-        -- Special tiles
-        spawn_border = {0.3, 0.1, 0.6, 1},
-        spawn_hover = {0.2, 0.05, 0.4, 1},
-        finale_border = {0.8, 0.0, 1.0, 1},
-        finale_hover = {0.6, 0.0, 0.8, 1},
-        finale_glow = {0.8, 0.0, 1.0, 0.4},
-        
-        -- UI
-        ui_background = {0.02, 0.02, 0.05, 0.9},
-        ui_text = {0.9, 0.7, 1.0, 1}
-    },
-    
-    [LevelConfig.THEMES.ABYSS] = {
-        -- Background
-        background = {0.2, 0.05, 0.05, 1},
-        
-        -- Walls
-        wall_border = {0.4, 0.1, 0.1, 1},
-        wall_inner = {0.6, 0.2, 0.2, 1},
-        wall_hover_border = {0.3, 0.05, 0.05, 1},
-        wall_hover_inner = {0.5, 0.15, 0.15, 1},
-        
-        -- Walkable areas
-        walkable_border = {0.15, 0.05, 0.05, 1},
-        walkable_inner = {0.25, 0.1, 0.1, 1},
-        walkable_hover_border = {0.1, 0.02, 0.02, 1},
-        walkable_hover_inner = {0.2, 0.05, 0.05, 1},
-        
-        -- Special tiles
-        spawn_border = {0.1, 0.1, 0.6, 1},
-        spawn_hover = {0.05, 0.05, 0.4, 1},
-        finale_border = {1.0, 0.0, 0.0, 1},
-        finale_hover = {0.8, 0.0, 0.0, 1},
-        finale_glow = {1.0, 0.0, 0.0, 0.4},
-        
-        -- UI
-        ui_background = {0.1, 0.02, 0.02, 0.9},
-        ui_text = {1.0, 0.8, 0.8, 1}
-    }
-}
+-- Import colors from separate config
+local Colors = require("src.config.colors")
+LevelConfig.COLORS = Colors.THEMES
 
 -- Level progression settings
 LevelConfig.LEVEL_SETTINGS = {
@@ -181,7 +70,14 @@ LevelConfig.LEVEL_SETTINGS = {
 }
 
 function LevelConfig.getColors(theme)
-    return LevelConfig.COLORS[theme] or LevelConfig.COLORS[LevelConfig.THEMES.FOREST]
+    local themeNames = {
+        [LevelConfig.THEMES.FOREST] = "FOREST",
+        [LevelConfig.THEMES.CAVE] = "CAVE", 
+        [LevelConfig.THEMES.VOID] = "VOID",
+        [LevelConfig.THEMES.ABYSS] = "ABYSS"
+    }
+    local themeName = themeNames[theme] or "FOREST"
+    return LevelConfig.COLORS[themeName] or LevelConfig.COLORS.FOREST
 end
 
 function LevelConfig.getSettings(theme)
