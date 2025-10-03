@@ -7,7 +7,7 @@ GameConfig.MAZE_COLS = 20
 
 -- Game objectives
 GameConfig.MAX_SCORE = 10
-GameConfig.MAX_HEALTH = 10
+GameConfig.MAX_HEALTH = 100
 
 -- Item counts
 GameConfig.COLLECTIBLE_COUNT = 10
@@ -20,9 +20,9 @@ GameConfig.ENEMY_COUNT = 5
 
 -- Enemy settings
 GameConfig.ENEMY_MOVE_INTERVAL = 0.6  -- seconds between moves
-GameConfig.ENEMY_DAMAGE = 5
-GameConfig.DAMAGE_TILE_DAMAGE = 2
-GameConfig.HEALTH_RESTORE = 3
+GameConfig.ENEMY_DAMAGE = 20
+GameConfig.DAMAGE_TILE_DAMAGE = 10
+GameConfig.HEALTH_RESTORE = 10
 
 -- Animation settings
 GameConfig.HIT_FLASH_DURATION = 0.3

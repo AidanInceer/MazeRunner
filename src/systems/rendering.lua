@@ -2,6 +2,7 @@
 local Rendering = {}
 local GameConfig = require("src.config.game_config")
 local Helpers = require("src.utils.helpers")
+local GameState = require("src.core.game_state")
 
 function Rendering.drawMainMenu(screenWidth, screenHeight, startButton, colors)
     -- Draw animated background with gradient
@@ -413,10 +414,62 @@ function Rendering._drawTileItems(x, y, cellSize, gameObjects, r, c)
         love.graphics.circle("fill", centerX, centerY, cellSize / 6)
     end
     
-    -- Draw damage tile
+    -- Draw damage tile with enhanced spike animation
     if gameObjects.damageTiles[r] and gameObjects.damageTiles[r][c] then
+        local spikeTime = GameState.getSpikeAnimationTime()
+        local spikePulse = 0.6 + 0.4 * math.sin(spikeTime * 12.0 + r + c)
+        local spikePulse2 = 0.5 + 0.5 * math.sin(spikeTime * 8.0 + r * 2 + c * 2)
+        
+        -- Draw base damage tile
         love.graphics.setColor(GameConfig.COLORS.DAMAGE_TILE)
-        love.graphics.rectangle("fill", x + 4, y + 4, cellSize - 8, cellSize - 8)
+        love.graphics.rectangle("fill", x + 2, y + 2, cellSize - 4, cellSize - 4)
+        
+        -- Draw animated spikes with multiple layers
+        love.graphics.setColor(0.2, 0.2, 0.2, spikePulse)
+        local spikeSize = cellSize * 0.25 * spikePulse
+        local spikeSize2 = cellSize * 0.2 * spikePulse2
+        
+        -- Draw 8 corner and edge spikes
+        local spikes = {
+            -- Corner spikes (larger)
+            {x + 1, y + 1, x + 1 + spikeSize, y + 1, x + 1, y + 1 + spikeSize},  -- Top-left
+            {x + cellSize - 1, y + 1, x + cellSize - 1 - spikeSize, y + 1, x + cellSize - 1, y + 1 + spikeSize},  -- Top-right
+            {x + 1, y + cellSize - 1, x + 1 + spikeSize, y + cellSize - 1, x + 1, y + cellSize - 1 - spikeSize},  -- Bottom-left
+            {x + cellSize - 1, y + cellSize - 1, x + cellSize - 1 - spikeSize, y + cellSize - 1, x + cellSize - 1, y + cellSize - 1 - spikeSize},  -- Bottom-right
+            
+            -- Edge spikes (smaller)
+            {centerX, y + 1, centerX - spikeSize2/2, y + 1 + spikeSize2, centerX + spikeSize2/2, y + 1 + spikeSize2},  -- Top edge
+            {centerX, y + cellSize - 1, centerX - spikeSize2/2, y + cellSize - 1 - spikeSize2, centerX + spikeSize2/2, y + cellSize - 1 - spikeSize2},  -- Bottom edge
+            {x + 1, centerY, x + 1 + spikeSize2, centerY - spikeSize2/2, x + 1 + spikeSize2, centerY + spikeSize2/2},  -- Left edge
+            {x + cellSize - 1, centerY, x + cellSize - 1 - spikeSize2, centerY - spikeSize2/2, x + cellSize - 1 - spikeSize2, centerY + spikeSize2/2}  -- Right edge
+        }
+        
+        for _, spike in ipairs(spikes) do
+            love.graphics.polygon("fill", spike)
+        end
+        
+        -- Draw center spike (larger and more prominent)
+        local centerSpikeSize = cellSize * 0.15 * spikePulse
+        local centerSpike = {
+            centerX, centerY - centerSpikeSize,
+            centerX - centerSpikeSize, centerY + centerSpikeSize,
+            centerX + centerSpikeSize, centerY + centerSpikeSize
+        }
+        love.graphics.polygon("fill", centerSpike)
+        
+        -- Draw additional inner spikes for more detail
+        love.graphics.setColor(0.1, 0.1, 0.1, spikePulse2 * 0.8)
+        local innerSpikeSize = cellSize * 0.08 * spikePulse2
+        local innerSpikes = {
+            {centerX - cellSize * 0.2, centerY - cellSize * 0.2, centerX - cellSize * 0.2 - innerSpikeSize, centerY - cellSize * 0.2, centerX - cellSize * 0.2, centerY - cellSize * 0.2 - innerSpikeSize},  -- Inner top-left
+            {centerX + cellSize * 0.2, centerY - cellSize * 0.2, centerX + cellSize * 0.2 + innerSpikeSize, centerY - cellSize * 0.2, centerX + cellSize * 0.2, centerY - cellSize * 0.2 - innerSpikeSize},  -- Inner top-right
+            {centerX - cellSize * 0.2, centerY + cellSize * 0.2, centerX - cellSize * 0.2 - innerSpikeSize, centerY + cellSize * 0.2, centerX - cellSize * 0.2, centerY + cellSize * 0.2 + innerSpikeSize},  -- Inner bottom-left
+            {centerX + cellSize * 0.2, centerY + cellSize * 0.2, centerX + cellSize * 0.2 + innerSpikeSize, centerY + cellSize * 0.2, centerX + cellSize * 0.2, centerY + cellSize * 0.2 + innerSpikeSize}  -- Inner bottom-right
+        }
+        
+        for _, spike in ipairs(innerSpikes) do
+            love.graphics.polygon("fill", spike)
+        end
     end
     
     -- Draw health blob

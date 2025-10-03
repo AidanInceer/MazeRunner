@@ -73,6 +73,9 @@ function love.update(dt)
     
     -- Update enemy movement
     GameLogic.updateEnemies(dt)
+    
+    -- Update spike animation
+    GameState.updateSpikeAnimation(dt)
 end
 
 

@@ -44,6 +44,7 @@ local state = {
     collectParticles = {},
     collectParticleTimer = 0,
     enemyMoveTimer = 0,
+    spikeAnimationTime = 0,
     
     -- UI elements
     restartButton = {
@@ -397,6 +398,24 @@ end
 ]]
 function GameState.getAllState()
     return state
+end
+
+--[[
+    Gets the spike animation time
+    
+    @return number Spike animation time
+]]
+function GameState.getSpikeAnimationTime()
+    return state.spikeAnimationTime
+end
+
+--[[
+    Updates the spike animation time
+    
+    @param dt number Delta time
+]]
+function GameState.updateSpikeAnimation(dt)
+    state.spikeAnimationTime = state.spikeAnimationTime + dt
 end
 
 return GameState

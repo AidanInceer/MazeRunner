@@ -146,7 +146,7 @@ LevelConfig.LEVEL_SETTINGS = {
         baseEnemyCount = 15,
         enemySpeed = 0.6,
         collectibleCount = 8,
-        damageTileCount = 6,
+        damageTileCount = 15,
         healthBlobCount = 2,
         immunityBlobCount = 3,
         requiredScore = 10
@@ -155,7 +155,7 @@ LevelConfig.LEVEL_SETTINGS = {
         baseEnemyCount = 25,
         enemySpeed = 0.7,
         collectibleCount = 10,
-        damageTileCount = 8,
+        damageTileCount = 20,
         healthBlobCount = 3,
         immunityBlobCount = 4,
         requiredScore = 10
@@ -164,16 +164,16 @@ LevelConfig.LEVEL_SETTINGS = {
         baseEnemyCount = 35,
         enemySpeed = 0.8,
         collectibleCount = 12,
-        damageTileCount = 10,
+        damageTileCount = 25,
         healthBlobCount = 3,
         immunityBlobCount = 5,
         requiredScore = 10
     },
     [LevelConfig.THEMES.ABYSS] = {
-        baseEnemyCount = 50,
+        baseEnemyCount = 40,
         enemySpeed = 1.0,
         collectibleCount = 15,
-        damageTileCount = 12,
+        damageTileCount = 30,
         healthBlobCount = 4,
         immunityBlobCount = 6,
         requiredScore = 10
@@ -196,6 +196,11 @@ end
 function LevelConfig.getRequiredScore(theme)
     local settings = LevelConfig.getSettings(theme)
     return settings.requiredScore
+end
+
+function LevelConfig.getEnemySpeed(theme)
+    local settings = LevelConfig.getSettings(theme)
+    return settings.enemySpeed
 end
 
 function LevelConfig.getName(theme)

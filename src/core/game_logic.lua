@@ -1,6 +1,7 @@
 -- Game logic and mechanics handling
 local GameLogic = {}
 local GameConfig = require("src.config.game_config")
+local LevelConfig = require("src.config.level_config")
 local LevelManager = require("src.core.level_manager")
 local GameState = require("src.core.game_state")
 local WorldManager = require("src.world.world_manager")
@@ -155,7 +156,8 @@ function GameLogic.updateEnemies(dt)
     local gameObjects = GameState.getGameObjects()
     local playerData = GameState.getPlayerData()
     local enemyMoveTimer = GameState.getEnemyMoveTimer()
-    local enemyMoveInterval = GameConfig.ENEMY_MOVE_INTERVAL
+    local currentLevel = LevelManager.getCurrentLevel()
+    local enemyMoveInterval = LevelConfig.getEnemySpeed(currentLevel)
     
     enemyMoveTimer = enemyMoveTimer + dt
     
