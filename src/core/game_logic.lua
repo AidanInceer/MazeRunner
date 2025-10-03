@@ -101,6 +101,22 @@ function GameLogic.handlePlayerMovement(key)
                    (not gameObjects.maze[newR][newC] or gameObjects.maze[newR][newC] == "spawn" or gameObjects.maze[newR][newC] == "finale")
     
     if canMove then
+        -- Check for enemy collision at new position
+        if gameObjects.enemies[newR] and gameObjects.enemies[newR][newC] then
+            -- Player is moving into an enemy
+            if playerData.immune and playerData.immunityKills > 0 then
+                -- Kill enemy
+                gameObjects.enemies[newR][newC] = false
+                GameState.killEnemy()
+                -- Allow movement after killing enemy
+            else
+                -- Damage player and prevent movement
+                GameState.takeDamage(GameConfig.ENEMY_DAMAGE)
+                GameState.setHitFlash(GameConfig.ENEMY_HIT_FLASH_DURATION)
+                return  -- Don't move the player
+            end
+        end
+        
         GameState.setPlayerPosition(newR, newC)
         GameState.markVisited(newR, newC)
         

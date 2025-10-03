@@ -54,7 +54,7 @@ function Rendering.drawMainMenu(screenWidth, screenHeight, startButton, colors)
     love.graphics.setFont(love.graphics.newFont(32))
     
     -- Subtitle glow
-    love.graphics.setColor(0.3, 0.3, 0.8, 0.4 * pulse)
+    love.graphics.seftColor(0.3, 0.3, 0.8, 0.4 * pulse)
     for i = -2, 2 do
         for j = -2, 2 do
             if i ~= 0 or j ~= 0 then
