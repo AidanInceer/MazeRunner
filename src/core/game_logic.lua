@@ -183,7 +183,8 @@ function GameLogic.updateEnemies(dt)
                     
                     -- Check if move is valid
                     if Helpers.isValidPosition(newR, newC, GameConfig.MAZE_ROWS, GameConfig.MAZE_COLS) and
-                       not gameObjects.maze[newR][newC] then
+                       not gameObjects.maze[newR][newC] and
+                       not gameObjects.enemies[newR][newC] then
                         -- Remove from old position
                         gameObjects.enemies[enemy.r][enemy.c] = false
                         
