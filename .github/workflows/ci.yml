@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-love:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build .love (MVP)
+        run: |
+          mkdir -p dist
+          zip -9 -r "dist/Shards-of-Time.ci.love" . -x "dist/*" ".git/*" "*.love" "*.zip" "**/.DS_Store" "docs/*"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: shards-of-time-love
+          path: dist/Shards-of-Time.ci.love
+
+

@@ -1,0 +1,62 @@
+# OS/Editor
+.DS_Store
+Thumbs.db
+.ehthumbs.db
+Desktop.ini
+.vscode/
+.idea/
+.vs/
+*.code-workspace
+*.sublime-project
+*.sublime-workspace
+*.iml
+*~
+.#*
+#*#
+
+# Dependencies/Build
+dist/
+build/
+release/
+*.love
+*.zip
+*.7z
+*.rar
+*.tar
+*.tar.gz
+*.tgz
+
+# Logs/Temp
+*.log
+tmp/
+temp/
+*.swp
+*.swo
+*.bak
+*.tmp
+*.orig
+*.rej
+.cache/
+.luacheckcache
+
+# Git
+.env
+.env.*
+.env.local
+
+# OS-specific cruft
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Icon?
+
+# Platform exports (common game packaging)
+*.exe
+*.dll
+*.so
+*.dylib
+*.app
+*.dmg
+*.AppImage
+*.deb
+*.rpm
