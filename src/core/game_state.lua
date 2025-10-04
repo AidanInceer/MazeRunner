@@ -40,6 +40,9 @@ local state = {
     playerMoveTimer = 0,
     playerMoveInterval = 0.2,  -- 200ms between moves (5 moves per second)
     heldKeys = {},  -- Track which keys are currently held down
+    -- Level progression system
+    previousLevelExitR = nil,  -- Previous level's exit row
+    previousLevelExitC = nil,  -- Previous level's exit column
     restartButton = {
         x = 20,
         y = 0,
@@ -357,6 +360,21 @@ end
 
 function GameState.getPlayerMoveInterval()
     return state.playerMoveInterval
+end
+
+-- Level progression system functions
+function GameState.setPreviousLevelExit(r, c)
+    state.previousLevelExitR = r
+    state.previousLevelExitC = c
+end
+
+function GameState.getPreviousLevelExit()
+    return state.previousLevelExitR, state.previousLevelExitC
+end
+
+function GameState.clearPreviousLevelExit()
+    state.previousLevelExitR = nil
+    state.previousLevelExitC = nil
 end
 
 return GameState

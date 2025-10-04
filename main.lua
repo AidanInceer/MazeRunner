@@ -103,6 +103,7 @@ end
 function love.keypressed(key)
     if key == "r" then
         LevelManager.restartGame()
+        GameState.clearPreviousLevelExit()  -- Clear previous level exit on restart
         love.load()
         return
     end
@@ -111,7 +112,11 @@ function love.keypressed(key)
     
     if gameState == GameConfig.STATES.MENU and (key == "space" or key == "return" or key == "enter") then
         GameState.setGameState(GameConfig.STATES.PLAYING)
-        local worldData = WorldManager.generateGameWorld()
+        -- Clear any previous level exit position for the first level
+        GameState.clearPreviousLevelExit()
+        print("DEBUG: Starting first level - no preferred spawn position")
+        local worldData = WorldManager.generateGameWorld()  -- No preferred spawn for first level
+        print("DEBUG: First level spawn placed at " .. worldData.spawnR .. ", " .. worldData.spawnC)
         GameState.setPlayerPosition(worldData.spawnR, worldData.spawnC)
         GameState.setCurrentLevel(LevelManager.getCurrentLevel())
         GameState.setGameObjects(worldData)

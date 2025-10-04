@@ -221,13 +221,19 @@ function GameLogic.handlePlayerMovement(key)
             local playerData = GameState.getPlayerData()
             
             if playerData.score >= GameConfig.REQUIRED_COLLECTIBLES then
+                -- Store the current finale position as the next level's spawn position
+                print("DEBUG: Level completed! Storing finale position " .. newR .. ", " .. newC .. " as next spawn")
+                GameState.setPreviousLevelExit(newR, newC)
+                
                 LevelManager.completeLevel()
                 if LevelManager.isGameComplete() then
                     GameState.getAllState().gameWon = true
                     GameState.setGameState(GameConfig.STATES.GAME_WON)
                 else
                     -- Level completed, generate next level
-                    local worldData = WorldManager.generateGameWorld()
+                    print("DEBUG: Generating next level with spawn at " .. newR .. ", " .. newC)
+                    local worldData = WorldManager.generateGameWorld(newR, newC)
+                    print("DEBUG: Next level spawn placed at " .. worldData.spawnR .. ", " .. worldData.spawnC)
                     GameState.setPlayerPosition(worldData.spawnR, worldData.spawnC)
                     GameState.setCurrentLevel(LevelManager.getCurrentLevel())
                     GameState.setGameObjects(worldData)

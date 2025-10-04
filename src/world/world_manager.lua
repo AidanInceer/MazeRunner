@@ -13,20 +13,27 @@ local LightningEnemy = require("src.entities.enemies.lightning_enemy")
 
 -- Validate that finale tile exists and is properly placed
 function WorldManager.validateFinaleTile(maze, finaleR, finaleC, rows, cols)
+    print("DEBUG: validateFinaleTile called with position " .. (finaleR or "nil") .. ", " .. (finaleC or "nil"))
+    
     if not finaleR or not finaleC then
-        error("CRITICAL ERROR: Finale tile coordinates are nil!")
+        print("ERROR: Finale tile position is nil!")
+        return false
     end
     
     if not Helpers.isValidPosition(finaleR, finaleC, rows, cols) then
-        error("CRITICAL ERROR: Finale tile is outside maze bounds!")
+        print("ERROR: Finale tile position " .. finaleR .. ", " .. finaleC .. " is out of bounds!")
+        return false
     end
+    
+    print("DEBUG: Finale tile at " .. finaleR .. ", " .. finaleC .. " has value: " .. tostring(maze[finaleR][finaleC]))
     
     if maze[finaleR][finaleC] ~= "finale" then
         print("WARNING: Finale tile at " .. finaleR .. ", " .. finaleC .. " is not marked as finale, fixing...")
         maze[finaleR][finaleC] = "finale"
     end
     
-    print("Finale tile validated at position: " .. finaleR .. ", " .. finaleC)
+    print("DEBUG: Finale tile validated at " .. finaleR .. ", " .. finaleC)
+    return true
 end
 
 -- Ensure minimum walkable spaces in the maze
@@ -128,9 +135,11 @@ function WorldManager.forcePlaceFinaleTile(maze, rows, cols, avoidR, avoidC)
 end
 
 -- Place a special tile (spawn or finale) on the maze edges
-function WorldManager.placeSpecialTile(maze, rows, cols, tileType, avoidR, avoidC)
+function WorldManager.placeSpecialTile(maze, rows, cols, tileType, avoidR, avoidC, preferredR, preferredC)
     -- For finale tiles, always place on a walkable area
     if tileType == "finale" then
+        print("DEBUG: Attempting to place finale tile, avoiding spawn at " .. (avoidR or "nil") .. ", " .. (avoidC or "nil"))
+        
         -- Find all walkable positions
         local walkablePositions = {}
         for r = 1, rows do
@@ -157,33 +166,58 @@ function WorldManager.placeSpecialTile(maze, rows, cols, tileType, avoidR, avoid
         end
     end
     
-    -- For spawn tiles, try edge positions first
+    -- For spawn tiles, try preferred position first, then edge positions
     local r, c
-    local attempts = 0
-    local maxAttempts = 100
     
-    repeat
-        r = math.random(1, rows)
-        c = math.random(1, cols)
-        attempts = attempts + 1
+    -- If a preferred position is provided and it's valid, use it
+    if preferredR and preferredC then
+        print("DEBUG: Preferred spawn position provided: " .. preferredR .. ", " .. preferredC)
+        print("DEBUG: Position valid: " .. tostring(Helpers.isValidPosition(preferredR, preferredC, rows, cols)))
+        print("DEBUG: Position walkable: " .. tostring(not maze[preferredR][preferredC]))
+        print("DEBUG: Not avoiding position: " .. tostring(not (avoidR and avoidC and preferredR == avoidR and preferredC == avoidC)))
         
-        -- If we can't find a suitable edge position, try any walkable position
-        if attempts > maxAttempts then
-            for r = 1, rows do
-                for c = 1, cols do
-                    if not maze[r][c] and not (avoidR and avoidC and r == avoidR and c == avoidC) then
-                        maze[r][c] = tileType
-                        return r, c
+        if Helpers.isValidPosition(preferredR, preferredC, rows, cols) and
+           not maze[preferredR][preferredC] and
+           not (avoidR and avoidC and preferredR == avoidR and preferredC == avoidC) then
+            r, c = preferredR, preferredC
+            print("DEBUG: Using preferred spawn position at " .. r .. ", " .. c)
+        else
+            print("DEBUG: Preferred position not valid, falling back to random placement")
+        end
+    else
+        print("DEBUG: No preferred spawn position provided")
+    end
+    
+    if not r or not c then
+        -- Try to find a suitable position (edge preferred, but any walkable position is fine)
+        local attempts = 0
+        local maxAttempts = 100
+        
+        repeat
+            r = math.random(1, rows)
+            c = math.random(1, cols)
+            attempts = attempts + 1
+            
+            -- If we can't find a suitable position, try any walkable position
+            if attempts > maxAttempts then
+                for r = 1, rows do
+                    for c = 1, cols do
+                        if not maze[r][c] and not (avoidR and avoidC and r == avoidR and c == avoidC) then
+                            maze[r][c] = tileType
+                            print("DEBUG: Placed spawn tile at walkable position " .. r .. ", " .. c)
+                            return r, c
+                        end
                     end
                 end
+                -- Last resort: place on any position
+                r, c = 1, 1
+                break
             end
-            -- Last resort: place on any position
-            r, c = 1, 1
-            break
-        end
-    until (r == 1 or r == rows or c == 1 or c == cols) and 
-          not maze[r][c] and  -- Ensure it's on a walkable area
-          not (avoidR and avoidC and r == avoidR and c == avoidC)
+        until not maze[r][c] and  -- Ensure it's on a walkable area
+              not (avoidR and avoidC and r == avoidR and c == avoidC)
+        
+        print("DEBUG: Placed spawn tile at " .. r .. ", " .. c)
+    end
     
     maze[r][c] = tileType
     return r, c
@@ -269,7 +303,7 @@ function WorldManager.placeEnemies(maze, rows, cols, count)
 end
 
 -- Generate the complete game world
-function WorldManager.generateGameWorld()
+function WorldManager.generateGameWorld(preferredSpawnR, preferredSpawnC)
     local rows, cols = GameConfig.MAZE_ROWS, GameConfig.MAZE_COLS
     local settings = LevelManager.getCurrentSettings()
     
@@ -309,9 +343,28 @@ function WorldManager.generateGameWorld()
         print("DEBUG: After ensuring minimum spaces, maze has " .. walkableCount .. " walkable spaces")
     end
     
+    -- If we have a preferred spawn position, clear it first (it might be a finale tile from previous level)
+    if preferredSpawnR and preferredSpawnC then
+        print("DEBUG: Clearing preferred spawn position " .. preferredSpawnR .. ", " .. preferredSpawnC .. " for spawn tile")
+        maze[preferredSpawnR][preferredSpawnC] = false  -- Make it walkable
+        
+        -- Recount walkable spaces after clearing
+        local walkableCountAfter = 0
+        for r = 1, rows do
+            for c = 1, cols do
+                if not maze[r][c] then
+                    walkableCountAfter = walkableCountAfter + 1
+                end
+            end
+        end
+        print("DEBUG: Walkable spaces after clearing preferred position: " .. walkableCountAfter)
+    end
+    
     -- Place spawn and finale
-    local spawnR, spawnC = WorldManager.placeSpecialTile(maze, rows, cols, "spawn")
+    local spawnR, spawnC = WorldManager.placeSpecialTile(maze, rows, cols, "spawn", nil, nil, preferredSpawnR, preferredSpawnC)
+    print("DEBUG: Spawn placed at " .. spawnR .. ", " .. spawnC)
     local finaleR, finaleC = WorldManager.placeSpecialTile(maze, rows, cols, "finale", spawnR, spawnC)
+    print("DEBUG: Finale placement attempt returned: " .. (finaleR or "nil") .. ", " .. (finaleC or "nil"))
     
     -- Validate that finale tile was placed - if not, force placement
     if not finaleR or not finaleC then
@@ -320,6 +373,7 @@ function WorldManager.generateGameWorld()
     end
     
     -- Final validation - ensure finale tile exists and is accessible
+    print("DEBUG: Validating finale tile at " .. (finaleR or "nil") .. ", " .. (finaleC or "nil"))
     WorldManager.validateFinaleTile(maze, finaleR, finaleC, rows, cols)
     
     
