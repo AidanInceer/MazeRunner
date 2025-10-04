@@ -36,7 +36,7 @@ GameConfig.ENEMY_DAMAGE = {
     POISON = 0,        -- Poison enemies don't deal direct damage (they poison)
     SPLASH = 10,       -- Damage from splash enemy collision
     LIGHTNING = 20,    -- Damage from lightning enemy collision
-    BLOB = 20          -- Damage from blob enemy collision
+    BLOB = 40          -- Damage from blob enemy collision
 }
 
 -- Tile damage values

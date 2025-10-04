@@ -45,11 +45,11 @@ LevelConfig.COLORS = Colors.THEMES
 LevelConfig.LEVEL_SETTINGS = {
     [LevelConfig.THEMES.FOREST] = {
         -- Enemy counts (Easy - Tutorial level)
-        defaultEnemyCount = 3,
-        poisonEnemyCount = 0,
-        splashEnemyCount = 0,
-        lightningEnemyCount = 1,
-        blobEnemyCount = 1,
+        defaultEnemyCount = 5,
+        poisonEnemyCount = 1,
+        splashEnemyCount = 1,
+        lightningEnemyCount = 2,
+        blobEnemyCount = 2,
         -- Item countsclea
         collectibleCount = 6,
         damageTileCount = 8,
@@ -59,11 +59,11 @@ LevelConfig.LEVEL_SETTINGS = {
     },
     [LevelConfig.THEMES.CAVE] = {
         -- Enemy counts (Easy+)
-        defaultEnemyCount = 4,
-        poisonEnemyCount = 1,
-        splashEnemyCount = 1,
-        lightningEnemyCount = 0,
-        blobEnemyCount = 0,
+        defaultEnemyCount = 6,
+        poisonEnemyCount = 2,
+        splashEnemyCount = 2,
+        lightningEnemyCount = 1,
+        blobEnemyCount = 1,
         -- Item counts
         collectibleCount = 7,
         damageTileCount = 10,
@@ -73,11 +73,11 @@ LevelConfig.LEVEL_SETTINGS = {
     },
     [LevelConfig.THEMES.VOID] = {
         -- Enemy counts (Medium-)
-        defaultEnemyCount = 5,
-        poisonEnemyCount = 1,
-        splashEnemyCount = 1,
-        lightningEnemyCount = 1,
-        blobEnemyCount = 0,
+        defaultEnemyCount = 7,
+        poisonEnemyCount = 2,
+        splashEnemyCount = 2,
+        lightningEnemyCount = 2,
+        blobEnemyCount = 2,
         -- Item counts
         collectibleCount = 8,
         damageTileCount = 13,
@@ -87,11 +87,11 @@ LevelConfig.LEVEL_SETTINGS = {
     },
     [LevelConfig.THEMES.ABYSS] = {
         -- Enemy counts (Medium)
-        defaultEnemyCount = 6,
-        poisonEnemyCount = 1,
-        splashEnemyCount = 1,
-        lightningEnemyCount = 1,
-        blobEnemyCount = 1,
+        defaultEnemyCount = 9,
+        poisonEnemyCount = 2,
+        splashEnemyCount = 2,
+        lightningEnemyCount = 2,
+        blobEnemyCount = 2,
         -- Item counts
         collectibleCount = 9,
         damageTileCount = 16,
@@ -101,11 +101,11 @@ LevelConfig.LEVEL_SETTINGS = {
     },
     [LevelConfig.THEMES.VOLCANO] = {
         -- Enemy counts (Medium+)
-        defaultEnemyCount = 7,
-        poisonEnemyCount = 1,
-        splashEnemyCount = 2,
-        lightningEnemyCount = 1,
-        blobEnemyCount = 1,
+        defaultEnemyCount = 10,
+        poisonEnemyCount = 2,
+        splashEnemyCount = 3,
+        lightningEnemyCount = 3,
+        blobEnemyCount = 2,
         -- Item counts
         collectibleCount = 10,
         damageTileCount = 20,
@@ -115,11 +115,11 @@ LevelConfig.LEVEL_SETTINGS = {
     },
     [LevelConfig.THEMES.ARCTIC] = {
         -- Enemy counts (Hard-)
-        defaultEnemyCount = 8,
-        poisonEnemyCount = 2,
-        splashEnemyCount = 2,
-        lightningEnemyCount = 1,
-        blobEnemyCount = 1,
+        defaultEnemyCount = 12,
+        poisonEnemyCount = 3,
+        splashEnemyCount = 3,
+        lightningEnemyCount = 3,
+        blobEnemyCount = 3,
         -- Item counts
         collectibleCount = 11,
         damageTileCount = 24,
@@ -129,11 +129,11 @@ LevelConfig.LEVEL_SETTINGS = {
     },
     [LevelConfig.THEMES.DESERT] = {
         -- Enemy counts (Hard)
-        defaultEnemyCount = 9,
-        poisonEnemyCount = 2,
-        splashEnemyCount = 2,
-        lightningEnemyCount = 1,
-        blobEnemyCount = 2,
+        defaultEnemyCount = 13,
+        poisonEnemyCount = 3,
+        splashEnemyCount = 3,
+        lightningEnemyCount = 3,
+        blobEnemyCount = 3,
         -- Item counts
         collectibleCount = 12,
         damageTileCount = 28,
@@ -143,11 +143,11 @@ LevelConfig.LEVEL_SETTINGS = {
     },
     [LevelConfig.THEMES.NEBULA] = {
         -- Enemy counts (Hard+)
-        defaultEnemyCount = 10,
-        poisonEnemyCount = 2,
-        splashEnemyCount = 2,
-        lightningEnemyCount = 2,
-        blobEnemyCount = 2,
+        defaultEnemyCount = 14,
+        poisonEnemyCount = 3,
+        splashEnemyCount = 4,
+        lightningEnemyCount = 3,
+        blobEnemyCount = 3,
         -- Item counts
         collectibleCount = 13,
         damageTileCount = 32,
