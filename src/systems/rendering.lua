@@ -144,6 +144,9 @@ function Rendering.drawGame(screenWidth, screenHeight, maze, gameObjects, player
     -- Draw moveable crates
     Rendering._drawMoveableCrates(gameObjects.moveableCrates, cellSize, offsetX, offsetY)
     
+    -- Draw grey orbs
+    Rendering._drawGreyOrbs(gameObjects.greyOrbs, cellSize, offsetX, offsetY)
+    
     -- Draw poison enemies LAST - on top of everything
     Rendering._drawPoisonEnemies(gameObjects.poisonEnemies, cellSize, offsetX, offsetY)
 end
@@ -277,6 +280,102 @@ function Rendering.drawLevelDisplay(screenWidth, screenHeight, levelNumber, leve
     love.graphics.printf(levelName, boxX + 10, boxY + 35, boxWidth - 20, "left")
     
     love.graphics.setColor(1, 1, 1, 1)
+end
+
+function Rendering.drawInventory(screenWidth, screenHeight, inventory, colors)
+    -- Define grid dimensions
+    local gridCols = 4
+    local gridRows = 8
+    local slotSize = 30
+    local slotSpacing = 8
+    local padding = 10
+    local titleHeight = 25
+    
+    -- Calculate box dimensions based on slot layout
+    local totalSlotWidth = (gridCols * slotSize) + ((gridCols - 1) * slotSpacing)
+    local totalSlotHeight = (gridRows * slotSize) + ((gridRows - 1) * slotSpacing)
+    
+    local boxWidth = totalSlotWidth + (padding * 2)
+    local boxHeight = totalSlotHeight + (padding * 2) + titleHeight
+    
+    local boxX = screenWidth - boxWidth - 20
+    local boxY = screenHeight - boxHeight - 20
+    
+    -- Draw background box
+    love.graphics.setColor(0.1, 0.1, 0.2, 0.9)
+    love.graphics.rectangle("fill", boxX, boxY, boxWidth, boxHeight)
+    
+    -- Draw border
+    love.graphics.setColor(colors.ui_border or {0.5, 0.5, 0.7, 1})
+    love.graphics.setLineWidth(2)
+    love.graphics.rectangle("line", boxX, boxY, boxWidth, boxHeight)
+    
+    -- Draw title
+    love.graphics.setColor(colors.ui_text or {1, 1, 1, 1})
+    love.graphics.setFont(love.graphics.newFont(16))
+    love.graphics.print("Inventory", boxX + padding, boxY + padding)
+    
+    -- Draw inventory slots in 4x8 grid
+    local startX = boxX + padding
+    local startY = boxY + padding + titleHeight
+    
+    for row = 0, 7 do
+        for col = 0, 3 do
+            local slotIndex = row * 4 + col + 1
+            local slotX = startX + col * (slotSize + slotSpacing)
+            local slotY = startY + row * (slotSize + slotSpacing)
+            
+            -- Draw slot background
+            love.graphics.setColor(0.2, 0.2, 0.3, 1)
+            love.graphics.rectangle("fill", slotX, slotY, slotSize, slotSize)
+            
+            -- Draw slot border
+            love.graphics.setColor(0.4, 0.4, 0.5, 1)
+            love.graphics.setLineWidth(1)
+            love.graphics.rectangle("line", slotX, slotY, slotSize, slotSize)
+            
+            -- Draw item in slot
+            local slotKey = "slot" .. slotIndex
+            local item = inventory[slotKey]
+            if item then
+                local centerX = slotX + slotSize / 2
+                local centerY = slotY + slotSize / 2
+                local orbRadius = slotSize * 0.3
+                
+                if item.type == "grey_orb" then
+                    -- Draw grey orb with same style as in-game
+                    -- Draw orb shadow
+                    love.graphics.setColor(0.2, 0.2, 0.2, 0.6)
+                    love.graphics.circle("fill", centerX + 1, centerY + 1, orbRadius)
+                    
+                    -- Draw main orb body (grey)
+                    love.graphics.setColor(0.6, 0.6, 0.6, 1)
+                    love.graphics.circle("fill", centerX, centerY, orbRadius)
+                    
+                    -- Draw orb highlight
+                    love.graphics.setColor(0.8, 0.8, 0.8, 1)
+                    love.graphics.circle("fill", centerX - orbRadius * 0.3, centerY - orbRadius * 0.3, orbRadius * 0.5)
+                    
+                    -- Draw orb border
+                    love.graphics.setColor(0.4, 0.4, 0.4, 1)
+                    love.graphics.setLineWidth(1)
+                    love.graphics.circle("line", centerX, centerY, orbRadius)
+                else
+                    -- Draw generic item icon for other item types
+                    love.graphics.setColor(0.6, 0.6, 0.6, 1)
+                    love.graphics.setFont(love.graphics.newFont(16))
+                    love.graphics.print(item.icon or "?", centerX - 4, centerY - 8)
+                end
+            else
+                -- Draw empty slot indicator
+                love.graphics.setColor(0.3, 0.3, 0.4, 0.5)
+                love.graphics.setFont(love.graphics.newFont(12))
+                love.graphics.print("-", slotX + slotSize/2 - 2, slotY + slotSize/2 - 4)
+            end
+        end
+    end
+    
+    love.graphics.setLineWidth(1)
 end
 
 function Rendering.drawGameMessages(screenWidth, screenHeight, gameWon, gameOver)
@@ -1377,6 +1476,42 @@ function Rendering._drawMoveableCrates(crates, cellSize, offsetX, offsetY)
             love.graphics.line(x + cellSize / 6 + 2, grainY, x + cellSize * 5 / 6 - 2, grainY)
         end
         love.graphics.setLineWidth(1)
+    end
+end
+
+function Rendering._drawGreyOrbs(orbs, cellSize, offsetX, offsetY)
+    if not orbs then
+        return
+    end
+    
+    for _, orb in ipairs(orbs) do
+        if not orb.collected then
+            local x, y = Helpers.getScreenPosition(cellSize, offsetX, offsetY, orb.r, orb.c)
+            local centerX = x + cellSize / 2
+            local centerY = y + cellSize / 2
+            
+            -- Get animation data
+            local animData = orb.getAnimationData and orb.getAnimationData(orb) or {}
+            local pulse = animData.glowIntensity or 1.0
+            
+            -- Draw orb shadow
+            love.graphics.setColor(0.2, 0.2, 0.2, 0.6)
+            love.graphics.circle("fill", centerX + 2, centerY + 2, cellSize * 0.3)
+            
+            -- Draw main orb body (grey)
+            love.graphics.setColor(0.6, 0.6, 0.6, pulse)
+            love.graphics.circle("fill", centerX, centerY, cellSize * 0.3)
+            
+            -- Draw orb highlight
+            love.graphics.setColor(0.8, 0.8, 0.8, pulse)
+            love.graphics.circle("fill", centerX - cellSize * 0.1, centerY - cellSize * 0.1, cellSize * 0.15)
+            
+            -- Draw orb border
+            love.graphics.setColor(0.4, 0.4, 0.4, 1)
+            love.graphics.setLineWidth(2)
+            love.graphics.circle("line", centerX, centerY, cellSize * 0.3)
+            love.graphics.setLineWidth(1)
+        end
     end
 end
 

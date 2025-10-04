@@ -43,6 +43,7 @@ function love.update(dt)
     
     GameLogic.updateParticles(dt)
     GameLogic.updateEnemies(dt)
+    GameLogic.updateGreyOrbs(dt)
     GameLogic.updatePoisonEnemies(dt)
     GameLogic.updateSplashEnemies(dt)
     GameLogic.updatePoisonDamage(dt)
@@ -84,6 +85,10 @@ function love.draw()
         
         -- Draw level display in top right
         Rendering.drawLevelDisplay(screenWidth, screenHeight, LevelManager.getCurrentLevel(), LevelManager.getCurrentName(), LevelManager.getCurrentColors())
+        
+        -- Draw inventory in bottom right
+        local inventory = GameState.getInventory()
+        Rendering.drawInventory(screenWidth, screenHeight, inventory, LevelManager.getCurrentColors())
         
         local gameState = GameState.getGameState()
         if gameState == GameConfig.STATES.INSUFFICIENT_SCORE then

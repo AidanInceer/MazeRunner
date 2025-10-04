@@ -99,6 +99,33 @@ function GameLogic.handleItemCollection(r, c, gameObjects)
         end
     end
     
+    -- Check grey orbs
+    if gameObjects.greyOrbs then
+        for i, orb in ipairs(gameObjects.greyOrbs) do
+            if orb.r == r and orb.c == c and not orb.collected then
+                local itemData = orb:collect()
+                local added = GameState.addToInventory(itemData)
+                if added then
+                    collected = true
+                    print("DEBUG: Collected grey orb at " .. r .. ", " .. c)
+                else
+                    print("DEBUG: Inventory full! Cannot collect grey orb at " .. r .. ", " .. c)
+                end
+                
+                -- Create grey orb particles
+                local screenWidth, screenHeight = love.graphics.getDimensions()
+                local cellSize, _, _, offsetX, offsetY = 
+                    Helpers.calculateGridDimensions(screenWidth, screenHeight, GameConfig.MAZE_ROWS, GameConfig.MAZE_COLS)
+                local centerX = offsetX + (c - 1) * cellSize + cellSize / 2
+                local centerY = offsetY + (r - 1) * cellSize + cellSize / 2
+                
+                particles = Helpers.createCircularParticles(
+                    centerX, centerY, 6, 80, GameConfig.PARTICLE_LIFE, 2, "grey"
+                )
+            end
+        end
+    end
+    
     if collected then
         GameState.addParticles(particles)
     end
@@ -802,6 +829,28 @@ function GameLogic.updateMoveableCrates(dt)
     
     -- Update the game objects with the modified arrays
     gameObjects.moveableCrates = crates
+end
+
+-- Update grey orbs
+function GameLogic.updateGreyOrbs(dt)
+    local gameObjects = GameState.getGameObjects()
+    
+    -- Ensure grey orbs array is initialized
+    if not gameObjects.greyOrbs then
+        gameObjects.greyOrbs = {}
+    end
+    
+    local orbs = gameObjects.greyOrbs
+    
+    -- Update orb animations
+    for _, orb in ipairs(orbs) do
+        if orb.update then
+            orb:update(dt)
+        end
+    end
+    
+    -- Update the game objects with the modified arrays
+    gameObjects.greyOrbs = orbs
 end
 
 -- Update poison damage over time

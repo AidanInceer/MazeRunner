@@ -481,6 +481,22 @@ function WorldManager.placeMoveableCrates(maze, rows, cols, count)
     return crates
 end
 
+function WorldManager.placeGreyOrbs(maze, rows, cols, count)
+    local GreyOrb = require("src.entities.misc.grey_orb")
+    local orbs = {}
+    
+    for i = 1, count do
+        local r, c = WorldManager.findRandomWalkablePosition(maze, rows, cols)
+        if r and c then
+            local orb = GreyOrb.create(r, c)
+            table.insert(orbs, orb)
+            print("DEBUG: Placed grey orb at " .. r .. ", " .. c)
+        end
+    end
+    
+    return orbs
+end
+
 -- Place game items on the maze
 function WorldManager.placeItems(maze, rows, cols, count, itemType)
     local items = {}
@@ -664,6 +680,7 @@ function WorldManager.generateGameWorld(preferredSpawnR, preferredSpawnC)
     local immunityBlobs = WorldManager.placeItems(maze, rows, cols, settings.immunityBlobCount, "immunity")
     local speedBoostOrbs = WorldManager.placeSpeedBoostOrbs(maze, rows, cols, settings.speedBoostOrbCount)
     local moveableCrates = WorldManager.placeMoveableCrates(maze, rows, cols, settings.moveableCrateCount)
+    local greyOrbs = WorldManager.placeGreyOrbs(maze, rows, cols, settings.greyOrbCount)
     
     -- Place enemies with level progression scaling
     local currentTheme = LevelManager.getCurrentLevel()
@@ -729,6 +746,7 @@ function WorldManager.generateGameWorld(preferredSpawnR, preferredSpawnC)
         immunityBlobs = immunityBlobs,
         speedBoostOrbs = speedBoostOrbs,
         moveableCrates = moveableCrates,
+        greyOrbs = greyOrbs,
         enemies = enemies,
         poisonEnemies = poisonEnemies,
         poisonTiles = {},

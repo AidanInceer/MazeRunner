@@ -57,6 +57,7 @@ LevelConfig.LEVEL_SETTINGS = {
         immunityBlobCount = 3,
         speedBoostOrbCount = 2, -- Speed boost orbs
         moveableCrateCount = 3, -- Moveable crates
+        greyOrbCount = 4, -- Grey orbs for inventory
         requiredScore = 5
     },
     [LevelConfig.THEMES.CAVE] = {
@@ -73,6 +74,7 @@ LevelConfig.LEVEL_SETTINGS = {
         immunityBlobCount = 4,
         speedBoostOrbCount = 2, -- Speed boost orbs
         moveableCrateCount = 3, -- Moveable crates
+        greyOrbCount = 4, -- Grey orbs for inventory
         requiredScore = 6
     },
     [LevelConfig.THEMES.VOID] = {
@@ -89,6 +91,7 @@ LevelConfig.LEVEL_SETTINGS = {
         immunityBlobCount = 5,
         speedBoostOrbCount = 2, -- Speed boost orbs
         moveableCrateCount = 3, -- Moveable crates
+        greyOrbCount = 4, -- Grey orbs for inventory
         requiredScore = 8
     },
     [LevelConfig.THEMES.ABYSS] = {
@@ -105,6 +108,7 @@ LevelConfig.LEVEL_SETTINGS = {
         immunityBlobCount = 5,
         speedBoostOrbCount = 2, -- Speed boost orbs
         moveableCrateCount = 3, -- Moveable crates
+        greyOrbCount = 4, -- Grey orbs for inventory
         requiredScore = 10
     },
     [LevelConfig.THEMES.VOLCANO] = {
@@ -121,6 +125,7 @@ LevelConfig.LEVEL_SETTINGS = {
         immunityBlobCount = 7,
         speedBoostOrbCount = 2, -- Speed boost orbs
         moveableCrateCount = 3, -- Moveable crates
+        greyOrbCount = 4, -- Grey orbs for inventory
         requiredScore = 12
     },
     [LevelConfig.THEMES.ARCTIC] = {
@@ -137,6 +142,7 @@ LevelConfig.LEVEL_SETTINGS = {
         immunityBlobCount = 7,
         speedBoostOrbCount = 2, -- Speed boost orbs
         moveableCrateCount = 3, -- Moveable crates
+        greyOrbCount = 4, -- Grey orbs for inventory
         requiredScore = 14
     },
     [LevelConfig.THEMES.DESERT] = {
@@ -153,6 +159,7 @@ LevelConfig.LEVEL_SETTINGS = {
         immunityBlobCount = 8,
         speedBoostOrbCount = 2, -- Speed boost orbs
         moveableCrateCount = 3, -- Moveable crates
+        greyOrbCount = 4, -- Grey orbs for inventory
         requiredScore = 16
     },
     [LevelConfig.THEMES.NEBULA] = {
@@ -169,6 +176,7 @@ LevelConfig.LEVEL_SETTINGS = {
         immunityBlobCount = 9,
         speedBoostOrbCount = 2, -- Speed boost orbs
         moveableCrateCount = 3, -- Moveable crates
+        greyOrbCount = 4, -- Grey orbs for inventory
         requiredScore = 18
     }
 }
@@ -274,6 +282,10 @@ end
 
 function LevelConfig.getMoveableCrateCount(theme, levelProgress)
     return LevelConfig.LEVEL_SETTINGS[theme].moveableCrateCount or 0
+end
+
+function LevelConfig.getGreyOrbCount(theme, levelProgress)
+    return LevelConfig.LEVEL_SETTINGS[theme].greyOrbCount or 0
 end
 
 return LevelConfig

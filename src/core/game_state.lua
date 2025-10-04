@@ -25,6 +25,17 @@ local state = {
     immunityBlobs = {},
     speedBoostOrbs = {},
     moveableCrates = {},
+    greyOrbs = {},
+    inventory = {
+        slot1 = nil, slot2 = nil, slot3 = nil, slot4 = nil,
+        slot5 = nil, slot6 = nil, slot7 = nil, slot8 = nil,
+        slot9 = nil, slot10 = nil, slot11 = nil, slot12 = nil,
+        slot13 = nil, slot14 = nil, slot15 = nil, slot16 = nil,
+        slot17 = nil, slot18 = nil, slot19 = nil, slot20 = nil,
+        slot21 = nil, slot22 = nil, slot23 = nil, slot24 = nil,
+        slot25 = nil, slot26 = nil, slot27 = nil, slot28 = nil,
+        slot29 = nil, slot30 = nil, slot31 = nil, slot32 = nil
+    },
     enemies = {},
     poisonEnemies = {},
     poisonTiles = {},
@@ -187,6 +198,30 @@ function GameState.addPlayerScore(amount)
     GameState.setPlayerScore(state.score + amount)
 end
 
+-- Inventory management functions
+function GameState.addToInventory(item)
+    -- Find the first empty slot
+    for i = 1, 32 do
+        local slotKey = "slot" .. i
+        if state.inventory[slotKey] == nil then
+            state.inventory[slotKey] = item
+            return true
+        end
+    end
+    return false -- Inventory full
+end
+
+function GameState.getInventory()
+    return state.inventory
+end
+
+function GameState.clearInventory()
+    for i = 1, 32 do
+        local slotKey = "slot" .. i
+        state.inventory[slotKey] = nil
+    end
+end
+
 function GameState.setImmunity(immune, kills)
     state.playerImmune = immune
     state.immunityKills = kills or 0
@@ -216,6 +251,7 @@ function GameState.getGameObjects()
         immunityBlobs = state.immunityBlobs,
         speedBoostOrbs = state.speedBoostOrbs,
         moveableCrates = state.moveableCrates,
+        greyOrbs = state.greyOrbs,
         enemies = state.enemies,
         poisonEnemies = state.poisonEnemies,
         poisonTiles = state.poisonTiles,
@@ -236,6 +272,7 @@ function GameState.setGameObjects(objects)
     state.immunityBlobs = objects.immunityBlobs or state.immunityBlobs
     state.speedBoostOrbs = objects.speedBoostOrbs or state.speedBoostOrbs
     state.moveableCrates = objects.moveableCrates or state.moveableCrates
+    state.greyOrbs = objects.greyOrbs or state.greyOrbs
     state.enemies = objects.enemies or state.enemies
     state.poisonEnemies = objects.poisonEnemies
     state.poisonTiles = objects.poisonTiles
