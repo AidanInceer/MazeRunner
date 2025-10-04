@@ -40,6 +40,7 @@ function love.update(dt)
     GameLogic.updateSplashEnemies(dt)
     GameLogic.updatePoisonDamage(dt)
     GameLogic.updatePlayerMovement(dt)  -- Handle continuous movement
+    GameState.updateSpeedBoost(dt)  -- Update speed boost timer
     GameState.updateSpikeAnimation(dt)
 end
 

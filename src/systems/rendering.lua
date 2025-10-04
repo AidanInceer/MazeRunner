@@ -209,6 +209,13 @@ function Rendering.drawUI(playerData, screenHeight, restartButton, colors)
     local healthBarY = GameState.isPlayerPoisoned() and startY + lineHeight * 6 + 5 or startY + lineHeight * 5 + 5
     Rendering._drawHealthBar(playerData.health, playerData.maxHealth, boxX + 20, healthBarY)
     
+    -- Draw speed boost timer below health bar
+    local speedBoostData = GameState.getSpeedBoostData()
+    if speedBoostData.active then
+        local speedBoostY = healthBarY + GameConfig.HEALTH_BAR_HEIGHT + 10  -- 10px spacing below health bar
+        Rendering._drawSpeedBoostTimer(speedBoostData.timer, speedBoostData.multiplier, boxX + 20, speedBoostY)
+    end
+    
     -- Draw restart button with better positioning
     restartButton.x = 15
     restartButton.y = screenHeight - restartButton.height - 15
@@ -432,24 +439,40 @@ function Rendering._drawTileItems(x, y, cellSize, gameObjects, r, c)
     local centerX = x + cellSize / 2
     local centerY = y + cellSize / 2
     
-    -- Draw collectible with enhanced visibility and animation
+    -- Draw collectible as gold coin with enhanced visibility and animation
     if gameObjects.collectibles[r] and gameObjects.collectibles[r][c] then
         local time = love.timer.getTime()
         local pulse = 0.6 + 0.4 * math.sin(time * 4 + r + c)
         local glowPulse = 0.3 + 0.7 * math.sin(time * 6 + r * 2 + c * 2)
         local float = math.sin(time * 3 + r + c) * 2
+        local coinSize = cellSize / 4
         
         -- Draw outer glow effect (golden)
         love.graphics.setColor(1, 1, 0, 0.5 * glowPulse)
-        love.graphics.circle("fill", centerX, centerY + float, cellSize / 4)
+        love.graphics.circle("fill", centerX, centerY + float, coinSize)
         
-        -- Draw main collectible with pulsing effect
-        love.graphics.setColor(GameConfig.COLORS.ITEMS.COLLECTIBLE[1], GameConfig.COLORS.ITEMS.COLLECTIBLE[2], GameConfig.COLORS.ITEMS.COLLECTIBLE[3], pulse)
-        love.graphics.circle("fill", centerX, centerY + float, cellSize / 6)
+        -- Draw main coin body (golden)
+        love.graphics.setColor(1, 0.8, 0, pulse)
+        love.graphics.circle("fill", centerX, centerY + float, coinSize * 0.8)
         
-        -- Draw inner highlight
+        -- Draw coin inner circle (darker gold)
+        love.graphics.setColor(0.9, 0.7, 0, pulse)
+        love.graphics.circle("fill", centerX, centerY + float, coinSize * 0.6)
+        
+        -- Draw coin center (bright gold)
         love.graphics.setColor(1, 1, 0.6, 0.9)
-        love.graphics.circle("fill", centerX - 1, centerY - 1 + float, cellSize / 10)
+        love.graphics.circle("fill", centerX, centerY + float, coinSize * 0.4)
+        
+        -- Draw coin edge highlight
+        love.graphics.setColor(1, 1, 0.8, 0.8)
+        love.graphics.setLineWidth(2)
+        love.graphics.circle("line", centerX, centerY + float, coinSize * 0.8)
+        love.graphics.setLineWidth(1)
+        
+        -- Draw coin symbol ($)
+        love.graphics.setColor(0.6, 0.4, 0, 1)
+        love.graphics.setFont(love.graphics.newFont(coinSize * 0.6))
+        love.graphics.printf("$", centerX - coinSize * 0.3, centerY - coinSize * 0.2 + float, coinSize * 0.6, "center")
     end
     
     -- Draw damage tile with enhanced spike animation
@@ -566,6 +589,37 @@ function Rendering._drawTileItems(x, y, cellSize, gameObjects, r, c)
         love.graphics.setColor(0.8, 0, 0, 1)
         love.graphics.rectangle("line", centerX - 3, centerY - 5, 6, 8)
         love.graphics.rectangle("line", centerX - 2, centerY - 6, 4, 3)
+    end
+    
+    -- Draw speed boost orbs
+    if gameObjects.speedBoostOrbs then
+        for _, orb in ipairs(gameObjects.speedBoostOrbs) do
+            if orb.r == r and orb.c == c and not orb.collected then
+                local time = love.timer.getTime()
+                local pulse = 0.6 + 0.4 * math.sin(time * 4 + r + c)
+                local glowPulse = 0.3 + 0.7 * math.sin(time * 6 + r * 2 + c * 2)
+                local float = math.sin(time * 3 + r + c) * 2
+                
+                -- Draw outer glow effect (blue)
+                love.graphics.setColor(0, 0.5, 1, 0.6 * glowPulse)
+                love.graphics.circle("fill", centerX, centerY + float, cellSize / 3)
+                
+                -- Draw main speed boost orb with pulsing effect
+                love.graphics.setColor(0, 0.7, 1, pulse)
+                love.graphics.circle("fill", centerX, centerY + float, cellSize / 5)
+                
+                -- Draw inner highlight
+                love.graphics.setColor(0.8, 0.9, 1, 0.9)
+                love.graphics.circle("fill", centerX - 1, centerY - 1 + float, cellSize / 8)
+                
+                -- Draw speed lines for visual effect
+                love.graphics.setColor(0, 0.5, 1, 0.8)
+                love.graphics.setLineWidth(2)
+                love.graphics.line(centerX - cellSize/6, centerY + float, centerX + cellSize/6, centerY + float)
+                love.graphics.line(centerX, centerY - cellSize/6 + float, centerX, centerY + cellSize/6 + float)
+                love.graphics.setLineWidth(1)
+            end
+        end
     end
 end
 
@@ -1215,6 +1269,49 @@ function Rendering._drawLightningEnemies(lightningEnemies, cellSize, offsetX, of
         love.graphics.rectangle("line", x, y, cellSize, cellSize)
         love.graphics.setLineWidth(1)
     end
+end
+
+function Rendering._drawSpeedBoostTimer(timer, multiplier, x, y)
+    local barWidth = 200
+    local barHeight = 25
+    local maxDuration = 5.0  -- 5 seconds max duration
+    
+    -- Speed boost timer background with inner shadow
+    love.graphics.setColor(0.1, 0.1, 0.2, 0.9)  -- Dark blue background
+    love.graphics.rectangle("fill", x, y, barWidth, barHeight)
+    
+    love.graphics.setColor(0.05, 0.05, 0.15, 1)  -- Darker inner shadow
+    love.graphics.rectangle("fill", x + 1, y + 1, barWidth - 2, barHeight - 2)
+    
+    -- Speed boost timer fill with blue gradient
+    local timePercent = timer / maxDuration
+    local timerWidth = (barWidth - 2) * timePercent
+    
+    if timerWidth > 0 then
+        -- Blue gradient from light to dark
+        local blueIntensity = 0.3 + (timePercent * 0.7)  -- 0.3 to 1.0
+        love.graphics.setColor(0, 0.5 * blueIntensity, 1 * blueIntensity, 1)
+        love.graphics.rectangle("fill", x + 1, y + 1, timerWidth, barHeight - 2)
+        
+        -- Speed boost timer highlight
+        love.graphics.setColor(0.8, 0.9, 1, 0.4)
+        love.graphics.rectangle("fill", x + 1, y + 1, timerWidth, 3)
+    end
+    
+    -- Speed boost timer border with double border effect
+    love.graphics.setColor(0, 0, 0, 0.8)  -- Dark border
+    love.graphics.setLineWidth(2)
+    love.graphics.rectangle("line", x, y, barWidth, barHeight)
+    
+    love.graphics.setColor(0, 0.7, 1, 1)  -- Blue border
+    love.graphics.setLineWidth(1)
+    love.graphics.rectangle("line", x + 1, y + 1, barWidth - 2, barHeight - 2)
+    
+    -- Speed boost text
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.setFont(love.graphics.newFont(14))
+    local text = string.format("SPEED BOOST %.1fx - %.1fs", multiplier, timer)
+    love.graphics.print(text, x + 5, y + 5)
 end
 
 return Rendering

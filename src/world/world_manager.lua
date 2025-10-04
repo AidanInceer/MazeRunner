@@ -246,6 +246,53 @@ function WorldManager.ensurePathToFinale(maze, spawnR, spawnC, finaleR, finaleC,
     end
 end
 
+-- Find a random walkable position on the maze
+function WorldManager.findRandomWalkablePosition(maze, rows, cols)
+    local attempts = 0
+    local maxAttempts = 100
+    
+    while attempts < maxAttempts do
+        local r = math.random(1, rows)
+        local c = math.random(1, cols)
+        
+        -- Check if position is walkable (not a wall)
+        if not maze[r][c] then
+            return r, c
+        end
+        
+        attempts = attempts + 1
+    end
+    
+    -- If no random position found, try to find any walkable position
+    for r = 1, rows do
+        for c = 1, cols do
+            if not maze[r][c] then
+                return r, c
+            end
+        end
+    end
+    
+    -- If no walkable positions exist, return nil
+    return nil, nil
+end
+
+-- Place speed boost orbs on the maze
+function WorldManager.placeSpeedBoostOrbs(maze, rows, cols, count)
+    local SpeedBoostOrb = require("src.entities.misc.speed_boost_orb")
+    local orbs = {}
+    
+    for i = 1, count do
+        local r, c = WorldManager.findRandomWalkablePosition(maze, rows, cols)
+        if r and c then
+            local orb = SpeedBoostOrb.create(r, c)
+            table.insert(orbs, orb)
+            print("DEBUG: Placed speed boost orb at " .. r .. ", " .. c)
+        end
+    end
+    
+    return orbs
+end
+
 -- Place game items on the maze
 function WorldManager.placeItems(maze, rows, cols, count, itemType)
     local items = {}
@@ -405,6 +452,7 @@ function WorldManager.generateGameWorld(preferredSpawnR, preferredSpawnC)
     local damageTiles = WorldManager.placeItems(maze, rows, cols, settings.damageTileCount, "damage")
     local healthBlobs = WorldManager.placeItems(maze, rows, cols, settings.healthBlobCount, "health")
     local immunityBlobs = WorldManager.placeItems(maze, rows, cols, settings.immunityBlobCount, "immunity")
+    local speedBoostOrbs = WorldManager.placeSpeedBoostOrbs(maze, rows, cols, settings.speedBoostOrbCount)
     
     -- Place enemies with level progression scaling
     local currentTheme = LevelManager.getCurrentLevel()
@@ -441,6 +489,7 @@ function WorldManager.generateGameWorld(preferredSpawnR, preferredSpawnC)
         damageTiles = damageTiles,
         healthBlobs = healthBlobs,
         immunityBlobs = immunityBlobs,
+        speedBoostOrbs = speedBoostOrbs,
         enemies = enemies,
         poisonEnemies = poisonEnemies,
         poisonTiles = {},

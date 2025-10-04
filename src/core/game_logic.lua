@@ -76,6 +76,30 @@ function GameLogic.handleItemCollection(r, c, gameObjects)
         )
     end
     
+    -- Check speed boost orbs
+    if gameObjects.speedBoostOrbs then
+        for i, orb in ipairs(gameObjects.speedBoostOrbs) do
+            if orb.r == r and orb.c == c and not orb.collected then
+                local boostData = orb:collect()
+                GameState.activateSpeedBoost(boostData.speedMultiplier, boostData.duration)
+                GameState.addScore(5)  -- Add score for collecting speed boost orb
+                collected = true
+                
+                -- Create speed boost particles
+                local screenWidth, screenHeight = love.graphics.getDimensions()
+                local cellSize, _, _, offsetX, offsetY = 
+                    Helpers.calculateGridDimensions(screenWidth, screenHeight, GameConfig.MAZE_ROWS, GameConfig.MAZE_COLS)
+                local centerX = offsetX + (c - 1) * cellSize + cellSize / 2
+                local centerY = offsetY + (r - 1) * cellSize + cellSize / 2
+                
+                particles = Helpers.createCircularParticles(
+                    centerX, centerY, 8, 100, GameConfig.PARTICLE_LIFE, 3, "blue"
+                )
+                print("DEBUG: Collected speed boost orb at " .. r .. ", " .. c)
+            end
+        end
+    end
+    
     if collected then
         GameState.addParticles(particles)
     end
@@ -231,9 +255,7 @@ function GameLogic.handlePlayerMovement(key)
                     GameState.setGameState(GameConfig.STATES.GAME_WON)
                 else
                     -- Level completed, generate next level
-                    print("DEBUG: Generating next level with spawn at " .. newR .. ", " .. newC)
                     local worldData = WorldManager.generateGameWorld(newR, newC)
-                    print("DEBUG: Next level spawn placed at " .. worldData.spawnR .. ", " .. worldData.spawnC)
                     GameState.setPlayerPosition(worldData.spawnR, worldData.spawnC)
                     GameState.setCurrentLevel(LevelManager.getCurrentLevel())
                     GameState.setGameObjects(worldData)
@@ -324,12 +346,19 @@ function GameLogic.updatePlayerMovement(dt)
     local moveTimer = GameState.getPlayerMoveTimer()
     local moveInterval = GameState.getPlayerMoveInterval()
     
+    -- Get speed boost data and adjust move interval
+    local speedBoostData = GameState.getSpeedBoostData()
+    local adjustedInterval = moveInterval
+    if speedBoostData.active then
+        adjustedInterval = moveInterval / speedBoostData.multiplier
+    end
+    
     -- Update movement timer
     moveTimer = moveTimer + dt
     GameState.setPlayerMoveTimer(moveTimer)
     
     -- Check if it's time to move and if any movement keys are held
-    if moveTimer >= moveInterval then
+    if moveTimer >= adjustedInterval then
         -- Find the first held movement key (prioritize in order: W, A, S, D)
         local movementKey = nil
         if heldKeys["w"] or heldKeys["up"] then

@@ -23,6 +23,7 @@ local state = {
     damageTiles = {},
     healthBlobs = {},
     immunityBlobs = {},
+    speedBoostOrbs = {},
     enemies = {},
     poisonEnemies = {},
     poisonTiles = {},
@@ -43,6 +44,10 @@ local state = {
     -- Level progression system
     previousLevelExitR = nil,  -- Previous level's exit row
     previousLevelExitC = nil,  -- Previous level's exit column
+    -- Speed boost system
+    speedBoostActive = false,  -- Whether speed boost is currently active
+    speedBoostTimer = 0,       -- Time remaining for speed boost
+    speedBoostMultiplier = 1.0, -- Current speed multiplier
     restartButton = {
         x = 20,
         y = 0,
@@ -208,6 +213,7 @@ function GameState.getGameObjects()
         damageTiles = state.damageTiles,
         healthBlobs = state.healthBlobs,
         immunityBlobs = state.immunityBlobs,
+        speedBoostOrbs = state.speedBoostOrbs,
         enemies = state.enemies,
         poisonEnemies = state.poisonEnemies,
         poisonTiles = state.poisonTiles,
@@ -226,6 +232,7 @@ function GameState.setGameObjects(objects)
     state.damageTiles = objects.damageTiles or state.damageTiles
     state.healthBlobs = objects.healthBlobs or state.healthBlobs
     state.immunityBlobs = objects.immunityBlobs or state.immunityBlobs
+    state.speedBoostOrbs = objects.speedBoostOrbs or state.speedBoostOrbs
     state.enemies = objects.enemies or state.enemies
     state.poisonEnemies = objects.poisonEnemies
     state.poisonTiles = objects.poisonTiles
@@ -375,6 +382,40 @@ end
 function GameState.clearPreviousLevelExit()
     state.previousLevelExitR = nil
     state.previousLevelExitC = nil
+end
+
+-- Speed boost system functions
+function GameState.activateSpeedBoost(multiplier, duration)
+    state.speedBoostActive = true
+    state.speedBoostMultiplier = multiplier
+    state.speedBoostTimer = duration
+    print("DEBUG: Speed boost activated - " .. multiplier .. "x speed for " .. duration .. " seconds")
+end
+
+function GameState.updateSpeedBoost(dt)
+    if state.speedBoostActive then
+        state.speedBoostTimer = state.speedBoostTimer - dt
+        if state.speedBoostTimer <= 0 then
+            state.speedBoostActive = false
+            state.speedBoostMultiplier = 1.0
+            state.speedBoostTimer = 0
+            print("DEBUG: Speed boost expired")
+        end
+    end
+end
+
+function GameState.getSpeedBoostData()
+    return {
+        active = state.speedBoostActive,
+        timer = state.speedBoostTimer,
+        multiplier = state.speedBoostMultiplier
+    }
+end
+
+function GameState.clearSpeedBoost()
+    state.speedBoostActive = false
+    state.speedBoostMultiplier = 1.0
+    state.speedBoostTimer = 0
 end
 
 return GameState

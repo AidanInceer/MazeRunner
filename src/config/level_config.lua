@@ -50,11 +50,12 @@ LevelConfig.LEVEL_SETTINGS = {
         splashEnemyCount = 1,
         lightningEnemyCount = 2,
         blobEnemyCount = 2,
-        -- Item countsclea
-        collectibleCount = 6,
+        -- Item counts
+        collectibleCount = 8, -- Increased by 30% (6 * 1.3 = 7.8, rounded to 8)
         damageTileCount = 8,
         healthBlobCount = 2,
         immunityBlobCount = 3,
+        speedBoostOrbCount = 2, -- Speed boost orbs
         requiredScore = 5
     },
     [LevelConfig.THEMES.CAVE] = {
@@ -65,10 +66,11 @@ LevelConfig.LEVEL_SETTINGS = {
         lightningEnemyCount = 1,
         blobEnemyCount = 1,
         -- Item counts
-        collectibleCount = 7,
+        collectibleCount = 9, -- Increased by 30% (7 * 1.3 = 9.1, rounded to 9)
         damageTileCount = 10,
         healthBlobCount = 2,
         immunityBlobCount = 4,
+        speedBoostOrbCount = 2, -- Speed boost orbs
         requiredScore = 6
     },
     [LevelConfig.THEMES.VOID] = {
@@ -79,10 +81,11 @@ LevelConfig.LEVEL_SETTINGS = {
         lightningEnemyCount = 2,
         blobEnemyCount = 2,
         -- Item counts
-        collectibleCount = 8,
+        collectibleCount = 10, -- Increased by 30% (8 * 1.3 = 10.4, rounded to 10)
         damageTileCount = 13,
         healthBlobCount = 2,
         immunityBlobCount = 5,
+        speedBoostOrbCount = 2, -- Speed boost orbs
         requiredScore = 8
     },
     [LevelConfig.THEMES.ABYSS] = {
@@ -93,10 +96,11 @@ LevelConfig.LEVEL_SETTINGS = {
         lightningEnemyCount = 2,
         blobEnemyCount = 2,
         -- Item counts
-        collectibleCount = 9,
+        collectibleCount = 12, -- Increased by 30% (9 * 1.3 = 11.7, rounded to 12)
         damageTileCount = 16,
         healthBlobCount = 2,
         immunityBlobCount = 5,
+        speedBoostOrbCount = 2, -- Speed boost orbs
         requiredScore = 10
     },
     [LevelConfig.THEMES.VOLCANO] = {
@@ -107,10 +111,11 @@ LevelConfig.LEVEL_SETTINGS = {
         lightningEnemyCount = 3,
         blobEnemyCount = 2,
         -- Item counts
-        collectibleCount = 10,
+        collectibleCount = 13, -- Increased by 30% (10 * 1.3 = 13)
         damageTileCount = 20,
         healthBlobCount = 2,
         immunityBlobCount = 7,
+        speedBoostOrbCount = 2, -- Speed boost orbs
         requiredScore = 12
     },
     [LevelConfig.THEMES.ARCTIC] = {
@@ -121,10 +126,11 @@ LevelConfig.LEVEL_SETTINGS = {
         lightningEnemyCount = 3,
         blobEnemyCount = 3,
         -- Item counts
-        collectibleCount = 11,
+        collectibleCount = 14, -- Increased by 30% (11 * 1.3 = 14.3, rounded to 14)
         damageTileCount = 24,
         healthBlobCount = 2,
         immunityBlobCount = 7,
+        speedBoostOrbCount = 2, -- Speed boost orbs
         requiredScore = 14
     },
     [LevelConfig.THEMES.DESERT] = {
@@ -135,10 +141,11 @@ LevelConfig.LEVEL_SETTINGS = {
         lightningEnemyCount = 3,
         blobEnemyCount = 3,
         -- Item counts
-        collectibleCount = 12,
+        collectibleCount = 16, -- Increased by 30% (12 * 1.3 = 15.6, rounded to 16)
         damageTileCount = 28,
         healthBlobCount = 2,
         immunityBlobCount = 8,
+        speedBoostOrbCount = 2, -- Speed boost orbs
         requiredScore = 16
     },
     [LevelConfig.THEMES.NEBULA] = {
@@ -149,10 +156,11 @@ LevelConfig.LEVEL_SETTINGS = {
         lightningEnemyCount = 3,
         blobEnemyCount = 3,
         -- Item counts
-        collectibleCount = 13,
+        collectibleCount = 17, -- Increased by 30% (13 * 1.3 = 16.9, rounded to 17)
         damageTileCount = 32,
         healthBlobCount = 2,
         immunityBlobCount = 9,
+        speedBoostOrbCount = 2, -- Speed boost orbs
         requiredScore = 18
     }
 }
@@ -250,6 +258,10 @@ function LevelConfig.getAllThemes()
         table.insert(themes, i)
     end
     return themes
+end
+
+function LevelConfig.getSpeedBoostOrbCount(theme, levelProgress)
+    return LevelConfig.LEVEL_SETTINGS[theme].speedBoostOrbCount or 0
 end
 
 return LevelConfig
