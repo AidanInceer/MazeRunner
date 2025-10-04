@@ -51,10 +51,10 @@ LevelConfig.LEVEL_SETTINGS = {
         lightningEnemyCount = 2,
         blobEnemyCount = 2,
         -- Item counts
-        collectibleCount = 8, -- Increased by 30% (6 * 1.3 = 7.8, rounded to 8)
+        collectibleCount = 10, -- Increased by 30% + 25% (6 * 1.3 * 1.25 = 9.75, rounded to 10)
         damageTileCount = 8,
         healthBlobCount = 2,
-        immunityBlobCount = 3,
+        immunityBlobCount = 2, -- Reduced by 25% (3 * 0.75 = 2.25, rounded to 2)
         speedBoostOrbCount = 2, -- Speed boost orbs
         moveableCrateCount = 3, -- Moveable crates
         greyOrbCount = 4, -- Grey orbs for inventory
@@ -68,10 +68,10 @@ LevelConfig.LEVEL_SETTINGS = {
         lightningEnemyCount = 1,
         blobEnemyCount = 1,
         -- Item counts
-        collectibleCount = 9, -- Increased by 30% (7 * 1.3 = 9.1, rounded to 9)
+        collectibleCount = 11, -- Increased by 30% + 25% (7 * 1.3 * 1.25 = 11.375, rounded to 11)
         damageTileCount = 10,
         healthBlobCount = 2,
-        immunityBlobCount = 4,
+        immunityBlobCount = 3, -- Reduced by 25% (4 * 0.75 = 3)
         speedBoostOrbCount = 2, -- Speed boost orbs
         moveableCrateCount = 3, -- Moveable crates
         greyOrbCount = 4, -- Grey orbs for inventory
@@ -85,10 +85,10 @@ LevelConfig.LEVEL_SETTINGS = {
         lightningEnemyCount = 2,
         blobEnemyCount = 2,
         -- Item counts
-        collectibleCount = 10, -- Increased by 30% (8 * 1.3 = 10.4, rounded to 10)
+        collectibleCount = 13, -- Increased by 30% + 25% (8 * 1.3 * 1.25 = 13)
         damageTileCount = 13,
         healthBlobCount = 2,
-        immunityBlobCount = 5,
+        immunityBlobCount = 4, -- Reduced by 25% (5 * 0.75 = 3.75, rounded to 4)
         speedBoostOrbCount = 2, -- Speed boost orbs
         moveableCrateCount = 3, -- Moveable crates
         greyOrbCount = 4, -- Grey orbs for inventory
@@ -102,10 +102,10 @@ LevelConfig.LEVEL_SETTINGS = {
         lightningEnemyCount = 2,
         blobEnemyCount = 2,
         -- Item counts
-        collectibleCount = 12, -- Increased by 30% (9 * 1.3 = 11.7, rounded to 12)
+        collectibleCount = 15, -- Increased by 30% + 25% (9 * 1.3 * 1.25 = 14.625, rounded to 15)
         damageTileCount = 16,
         healthBlobCount = 2,
-        immunityBlobCount = 5,
+        immunityBlobCount = 4, -- Reduced by 25% (5 * 0.75 = 3.75, rounded to 4)
         speedBoostOrbCount = 2, -- Speed boost orbs
         moveableCrateCount = 3, -- Moveable crates
         greyOrbCount = 4, -- Grey orbs for inventory
@@ -119,10 +119,10 @@ LevelConfig.LEVEL_SETTINGS = {
         lightningEnemyCount = 3,
         blobEnemyCount = 2,
         -- Item counts
-        collectibleCount = 13, -- Increased by 30% (10 * 1.3 = 13)
+        collectibleCount = 16, -- Increased by 30% + 25% (10 * 1.3 * 1.25 = 16.25, rounded to 16)
         damageTileCount = 20,
         healthBlobCount = 2,
-        immunityBlobCount = 7,
+        immunityBlobCount = 5, -- Reduced by 25% (7 * 0.75 = 5.25, rounded to 5)
         speedBoostOrbCount = 2, -- Speed boost orbs
         moveableCrateCount = 3, -- Moveable crates
         greyOrbCount = 4, -- Grey orbs for inventory
@@ -136,10 +136,10 @@ LevelConfig.LEVEL_SETTINGS = {
         lightningEnemyCount = 3,
         blobEnemyCount = 3,
         -- Item counts
-        collectibleCount = 14, -- Increased by 30% (11 * 1.3 = 14.3, rounded to 14)
+        collectibleCount = 18, -- Increased by 30% + 25% (11 * 1.3 * 1.25 = 17.875, rounded to 18)
         damageTileCount = 24,
         healthBlobCount = 2,
-        immunityBlobCount = 7,
+        immunityBlobCount = 5, -- Reduced by 25% (7 * 0.75 = 5.25, rounded to 5)
         speedBoostOrbCount = 2, -- Speed boost orbs
         moveableCrateCount = 3, -- Moveable crates
         greyOrbCount = 4, -- Grey orbs for inventory
@@ -153,10 +153,10 @@ LevelConfig.LEVEL_SETTINGS = {
         lightningEnemyCount = 3,
         blobEnemyCount = 3,
         -- Item counts
-        collectibleCount = 16, -- Increased by 30% (12 * 1.3 = 15.6, rounded to 16)
+        collectibleCount = 20, -- Increased by 30% + 25% (12 * 1.3 * 1.25 = 19.5, rounded to 20)
         damageTileCount = 28,
         healthBlobCount = 2,
-        immunityBlobCount = 8,
+        immunityBlobCount = 6, -- Reduced by 25% (8 * 0.75 = 6)
         speedBoostOrbCount = 2, -- Speed boost orbs
         moveableCrateCount = 3, -- Moveable crates
         greyOrbCount = 4, -- Grey orbs for inventory
@@ -170,10 +170,10 @@ LevelConfig.LEVEL_SETTINGS = {
         lightningEnemyCount = 3,
         blobEnemyCount = 3,
         -- Item counts
-        collectibleCount = 17, -- Increased by 30% (13 * 1.3 = 16.9, rounded to 17)
+        collectibleCount = 21, -- Increased by 30% + 25% (13 * 1.3 * 1.25 = 21.125, rounded to 21)
         damageTileCount = 32,
         healthBlobCount = 2,
-        immunityBlobCount = 9,
+        immunityBlobCount = 7, -- Reduced by 25% (9 * 0.75 = 6.75, rounded to 7)
         speedBoostOrbCount = 2, -- Speed boost orbs
         moveableCrateCount = 3, -- Moveable crates
         greyOrbCount = 4, -- Grey orbs for inventory
