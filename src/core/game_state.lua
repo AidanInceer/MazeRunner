@@ -24,6 +24,7 @@ local state = {
     healthBlobs = {},
     immunityBlobs = {},
     speedBoostOrbs = {},
+    moveableCrates = {},
     enemies = {},
     poisonEnemies = {},
     poisonTiles = {},
@@ -214,6 +215,7 @@ function GameState.getGameObjects()
         healthBlobs = state.healthBlobs,
         immunityBlobs = state.immunityBlobs,
         speedBoostOrbs = state.speedBoostOrbs,
+        moveableCrates = state.moveableCrates,
         enemies = state.enemies,
         poisonEnemies = state.poisonEnemies,
         poisonTiles = state.poisonTiles,
@@ -233,6 +235,7 @@ function GameState.setGameObjects(objects)
     state.healthBlobs = objects.healthBlobs or state.healthBlobs
     state.immunityBlobs = objects.immunityBlobs or state.immunityBlobs
     state.speedBoostOrbs = objects.speedBoostOrbs or state.speedBoostOrbs
+    state.moveableCrates = objects.moveableCrates or state.moveableCrates
     state.enemies = objects.enemies or state.enemies
     state.poisonEnemies = objects.poisonEnemies
     state.poisonTiles = objects.poisonTiles

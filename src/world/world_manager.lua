@@ -293,6 +293,23 @@ function WorldManager.placeSpeedBoostOrbs(maze, rows, cols, count)
     return orbs
 end
 
+-- Place moveable crates on the maze
+function WorldManager.placeMoveableCrates(maze, rows, cols, count)
+    local MoveableCrate = require("src.entities.misc.moveable_crate")
+    local crates = {}
+    
+    for i = 1, count do
+        local r, c = WorldManager.findRandomWalkablePosition(maze, rows, cols)
+        if r and c then
+            local crate = MoveableCrate.create(r, c)
+            table.insert(crates, crate)
+            print("DEBUG: Placed moveable crate at " .. r .. ", " .. c)
+        end
+    end
+    
+    return crates
+end
+
 -- Place game items on the maze
 function WorldManager.placeItems(maze, rows, cols, count, itemType)
     local items = {}
@@ -453,6 +470,7 @@ function WorldManager.generateGameWorld(preferredSpawnR, preferredSpawnC)
     local healthBlobs = WorldManager.placeItems(maze, rows, cols, settings.healthBlobCount, "health")
     local immunityBlobs = WorldManager.placeItems(maze, rows, cols, settings.immunityBlobCount, "immunity")
     local speedBoostOrbs = WorldManager.placeSpeedBoostOrbs(maze, rows, cols, settings.speedBoostOrbCount)
+    local moveableCrates = WorldManager.placeMoveableCrates(maze, rows, cols, settings.moveableCrateCount)
     
     -- Place enemies with level progression scaling
     local currentTheme = LevelManager.getCurrentLevel()
@@ -490,6 +508,7 @@ function WorldManager.generateGameWorld(preferredSpawnR, preferredSpawnC)
         healthBlobs = healthBlobs,
         immunityBlobs = immunityBlobs,
         speedBoostOrbs = speedBoostOrbs,
+        moveableCrates = moveableCrates,
         enemies = enemies,
         poisonEnemies = poisonEnemies,
         poisonTiles = {},

@@ -234,6 +234,52 @@ function GameLogic.handlePlayerMovement(key)
             end
         end
         
+        -- Check for moveable crate collision at new position
+        if gameObjects.moveableCrates then
+            for _, crate in ipairs(gameObjects.moveableCrates) do
+                if crate.r == newR and crate.c == newC then
+                    -- Player is moving into a crate, try to push it
+                    local pushR, pushC = newR, newC
+                    
+                    -- Calculate push direction based on player movement
+                    if key == "w" or key == "up" then
+                        pushR = pushR - 1
+                    elseif key == "s" or key == "down" then
+                        pushR = pushR + 1
+                    elseif key == "a" or key == "left" then
+                        pushC = pushC - 1
+                    elseif key == "d" or key == "right" then
+                        pushC = pushC + 1
+                    end
+                    
+                    -- Check if crate can be pushed to the new position
+                    if crate:canBePushed(pushR, pushC, gameObjects.maze, GameConfig.MAZE_ROWS, GameConfig.MAZE_COLS, gameObjects) then
+                        -- Check if there's another crate at the push position
+                        local canPush = true
+                        for _, otherCrate in ipairs(gameObjects.moveableCrates) do
+                            if otherCrate ~= crate and otherCrate.r == pushR and otherCrate.c == pushC then
+                                canPush = false
+                                break
+                            end
+                        end
+                        
+                        if canPush then
+                            -- Push the crate
+                            crate:push(pushR, pushC)
+                            print("DEBUG: Pushed crate to " .. pushR .. ", " .. pushC)
+                            -- Allow player movement after pushing crate
+                        else
+                            -- Crate is blocked by another crate, prevent movement
+                            return
+                        end
+                    else
+                        -- Crate cannot be pushed (blocked by wall or boundary), prevent movement
+                        return
+                    end
+                end
+            end
+        end
+        
         GameState.setPlayerPosition(newR, newC)
         GameState.markVisited(newR, newC)
         
@@ -333,6 +379,7 @@ function GameLogic.updateEnemies(dt)
     GameLogic.updateSplashEnemies(dt)
     GameLogic.updateBlobEnemies(dt)
     GameLogic.updateLightningEnemies(dt)
+    GameLogic.updateMoveableCrates(dt)
 end
 
 -- Handle continuous player movement
@@ -730,6 +777,28 @@ function GameLogic.updateLightningEnemies(dt)
     
     -- Update the game objects with the modified arrays
     gameObjects.lightningEnemies = lightningEnemies
+end
+
+-- Update moveable crates
+function GameLogic.updateMoveableCrates(dt)
+    local gameObjects = GameState.getGameObjects()
+    
+    -- Ensure moveable crates array is initialized
+    if not gameObjects.moveableCrates then
+        gameObjects.moveableCrates = {}
+    end
+    
+    local crates = gameObjects.moveableCrates
+    
+    -- Update crate animations
+    for _, crate in ipairs(crates) do
+        if crate.update then
+            crate:update(dt)
+        end
+    end
+    
+    -- Update the game objects with the modified arrays
+    gameObjects.moveableCrates = crates
 end
 
 -- Update poison damage over time

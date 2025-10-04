@@ -139,6 +139,9 @@ function Rendering.drawGame(screenWidth, screenHeight, maze, gameObjects, player
     -- Draw lightning enemies
     Rendering._drawLightningEnemies(gameObjects.lightningEnemies, cellSize, offsetX, offsetY)
     
+    -- Draw moveable crates
+    Rendering._drawMoveableCrates(gameObjects.moveableCrates, cellSize, offsetX, offsetY)
+    
     -- Draw poison enemies LAST - on top of everything
     Rendering._drawPoisonEnemies(gameObjects.poisonEnemies, cellSize, offsetX, offsetY)
 end
@@ -1312,6 +1315,58 @@ function Rendering._drawSpeedBoostTimer(timer, multiplier, x, y)
     love.graphics.setFont(love.graphics.newFont(14))
     local text = string.format("SPEED BOOST %.1fx - %.1fs", multiplier, timer)
     love.graphics.print(text, x + 5, y + 5)
+end
+
+function Rendering._drawMoveableCrates(crates, cellSize, offsetX, offsetY)
+    if not crates then
+        return
+    end
+    
+    for _, crate in ipairs(crates) do
+        local x, y = Helpers.getScreenPosition(cellSize, offsetX, offsetY, crate.r, crate.c)
+        local centerX = x + cellSize / 2
+        local centerY = y + cellSize / 2
+        
+        -- Get animation data
+        local animData = crate.getAnimationData and crate.getAnimationData(crate) or {}
+        local pulse = animData.glowIntensity or 1.0
+        
+        -- Draw crate shadow
+        love.graphics.setColor(0.2, 0.1, 0.1, 0.6)
+        love.graphics.rectangle("fill", x + 2, y + 2, cellSize, cellSize)
+        
+        -- Draw main crate body (brown)
+        love.graphics.setColor(0.6, 0.4, 0.2, pulse)
+        love.graphics.rectangle("fill", x, y, cellSize, cellSize)
+        
+        -- Draw crate top (lighter brown)
+        love.graphics.setColor(0.7, 0.5, 0.3, pulse)
+        love.graphics.rectangle("fill", x + 2, y + 2, cellSize - 4, cellSize / 3)
+        
+        -- Draw crate sides (darker brown)
+        love.graphics.setColor(0.4, 0.3, 0.1, pulse)
+        love.graphics.rectangle("fill", x + 2, y + cellSize / 3 + 2, cellSize / 6, cellSize * 2 / 3 - 4)
+        love.graphics.rectangle("fill", x + cellSize * 5 / 6 - 2, y + cellSize / 3 + 2, cellSize / 6, cellSize * 2 / 3 - 4)
+        
+        -- Draw crate front (medium brown)
+        love.graphics.setColor(0.5, 0.35, 0.15, pulse)
+        love.graphics.rectangle("fill", x + cellSize / 6 + 2, y + cellSize / 3 + 2, cellSize * 2 / 3 - 4, cellSize * 2 / 3 - 4)
+        
+        -- Draw crate border
+        love.graphics.setColor(0.3, 0.2, 0.1, 1)
+        love.graphics.setLineWidth(2)
+        love.graphics.rectangle("line", x, y, cellSize, cellSize)
+        love.graphics.setLineWidth(1)
+        
+        -- Draw crate details (wood grain effect)
+        love.graphics.setColor(0.4, 0.3, 0.1, 0.8)
+        love.graphics.setLineWidth(1)
+        for i = 1, 3 do
+            local grainY = y + cellSize / 3 + 2 + (i * cellSize / 6)
+            love.graphics.line(x + cellSize / 6 + 2, grainY, x + cellSize * 5 / 6 - 2, grainY)
+        end
+        love.graphics.setLineWidth(1)
+    end
 end
 
 return Rendering
