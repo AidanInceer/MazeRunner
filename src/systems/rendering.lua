@@ -744,43 +744,50 @@ function Rendering._drawPlayer(playerData, cellSize, offsetX, offsetY)
     end
     love.graphics.rectangle("fill", x - 3, y - 3, cellSize + 6, cellSize + 6)
     
-    -- Draw outer border with highlight
+    -- Draw outer border with enhanced visibility
     if playerData.immune then
         love.graphics.setColor(GameConfig.COLORS.PLAYER.IMMUNE_BORDER)
     else
-        love.graphics.setColor(GameConfig.COLORS.PLAYER.BORDER)
+        love.graphics.setColor(0.8, 0.1, 0.1, 1)  -- Bright red border
     end
-    love.graphics.rectangle("fill", x, y, cellSize, cellSize)
+    love.graphics.setLineWidth(4)
+    love.graphics.rectangle("line", x - 2, y - 2, cellSize + 4, cellSize + 4)
     
-    -- Draw border highlight
-    love.graphics.setColor(GameConfig.COLORS.UI.HIGHLIGHT)
-    love.graphics.rectangle("fill", x + 1, y + 1, cellSize - 2, 2)
-    love.graphics.rectangle("fill", x + 1, y + 1, 2, cellSize - 2)
-    
-    -- Draw player inner with gradient effect
+    -- Draw main player body - bright red
     if playerData.immune then
         love.graphics.setColor(GameConfig.COLORS.PLAYER.IMMUNE_INNER)
     else
-        love.graphics.setColor(GameConfig.COLORS.PLAYER.INNER)
+        love.graphics.setColor(1, 0.2, 0.2, 1)  -- Bright red body
     end
-    love.graphics.rectangle("fill", x + 2, y + 2, cellSize - 4, cellSize - 4)
+    love.graphics.rectangle("fill", x, y, cellSize, cellSize)
     
-    -- Draw inner highlight
-    love.graphics.setColor(GameConfig.COLORS.UI.HIGHLIGHT[1], GameConfig.COLORS.UI.HIGHLIGHT[2], GameConfig.COLORS.UI.HIGHLIGHT[3], 0.3)
-    love.graphics.rectangle("fill", x + 3, y + 3, cellSize - 6, 2)
-    love.graphics.rectangle("fill", x + 3, y + 3, 2, cellSize - 6)
+    -- Draw inner border for depth
+    love.graphics.setColor(0.6, 0.1, 0.1, 1)  -- Darker red inner border
+    love.graphics.setLineWidth(2)
+    love.graphics.rectangle("line", x + 2, y + 2, cellSize - 4, cellSize - 4)
     
-    -- Draw center dot for better visibility
+    -- Draw center cross for better visibility
     local centerX = x + cellSize / 2
     local centerY = y + cellSize / 2
-    local dotSize = cellSize * 0.2
+    local crossSize = cellSize * 0.3
     
-    if playerData.immune then
-        love.graphics.setColor(GameConfig.COLORS.PLAYER.IMMUNE_DOT)
-    else
-        love.graphics.setColor(GameConfig.COLORS.PLAYER.CENTER_DOT)
-    end
-    love.graphics.circle("fill", centerX, centerY, dotSize)
+    love.graphics.setColor(1, 1, 1, 1)  -- White cross
+    love.graphics.setLineWidth(3)
+    love.graphics.line(centerX - crossSize, centerY, centerX + crossSize, centerY)
+    love.graphics.line(centerX, centerY - crossSize, centerX, centerY + crossSize)
+    
+    -- Draw corner highlights for extra visibility
+    love.graphics.setColor(1, 1, 1, 0.8)  -- White corner highlights
+    love.graphics.setLineWidth(2)
+    local cornerSize = cellSize * 0.2
+    love.graphics.line(x + 2, y + 2, x + cornerSize, y + 2)
+    love.graphics.line(x + 2, y + 2, x + 2, y + cornerSize)
+    love.graphics.line(x + cellSize - 2, y + 2, x + cellSize - cornerSize, y + 2)
+    love.graphics.line(x + cellSize - 2, y + 2, x + cellSize - 2, y + cornerSize)
+    love.graphics.line(x + 2, y + cellSize - 2, x + cornerSize, y + cellSize - 2)
+    love.graphics.line(x + 2, y + cellSize - 2, x + 2, y + cellSize - cornerSize)
+    love.graphics.line(x + cellSize - 2, y + cellSize - 2, x + cellSize - cornerSize, y + cellSize - 2)
+    love.graphics.line(x + cellSize - 2, y + cellSize - 2, x + cellSize - 2, y + cellSize - cornerSize)
     
     -- Draw immunity glow effect
     if playerData.immune then
