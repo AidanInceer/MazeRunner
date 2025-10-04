@@ -30,7 +30,7 @@ function MazeGenerator.generateProceduralMaze(rows, cols)
         end
     end
     
-    local minWalkable = math.max(30, (rows * cols) * 0.15)  -- At least 15% walkable or 30 spaces
+    local minWalkable = math.max(200, (rows * cols) * 0.35)  -- At least 35% walkable or 200 spaces (reduced walls by 25%)
     if walkableCount < minWalkable then
         print("WARNING: Maze generator created too few walkable spaces (" .. walkableCount .. "), adding more...")
         MazeGenerator._addMoreWalkableSpaces(maze, rows, cols, minWalkable - walkableCount)
@@ -40,7 +40,7 @@ function MazeGenerator.generateProceduralMaze(rows, cols)
 end
 
 function MazeGenerator._createRooms(maze, rows, cols)
-    local numRooms = math.random(3, 6)
+    local numRooms = math.random(5, 8)  -- More rooms for less walls
     local rooms = {}
     
     for i = 1, numRooms do
@@ -109,7 +109,7 @@ function MazeGenerator._connectRooms(maze, rooms)
 end
 
 function MazeGenerator._addRandomCorridors(maze, rows, cols)
-    for i = 1, 25 do  -- Increased from 15 to 25
+    for i = 1, 35 do  -- More corridors for less walls
         local r = math.random(2, rows - 1)
         local c = math.random(2, cols - 1)
         local length = math.random(3, 8)
@@ -136,7 +136,7 @@ function MazeGenerator._addRandomCorridors(maze, rows, cols)
 end
 
 function MazeGenerator._addScatteredAreas(maze, rows, cols)
-    for i = 1, 25 do  -- Increased from 15 to 25
+    for i = 1, 35 do  -- More scattered areas for less walls
         local r = math.random(2, rows - 1)
         local c = math.random(2, cols - 1)
         local size = math.random(1, 3)  -- Increased max size from 2 to 3

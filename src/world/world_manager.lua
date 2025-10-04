@@ -292,7 +292,7 @@ function WorldManager.generateGameWorld()
     print("DEBUG: Generated maze has " .. walkableCount .. " walkable spaces out of " .. (rows * cols) .. " total spaces")
     
     -- Ensure minimum walkable spaces for proper gameplay
-    local minWalkableSpaces = 50  -- Minimum 50 walkable spaces
+    local minWalkableSpaces = 150  -- Minimum 200 walkable spaces for 30x30 map (reduced walls by 25%)
     if walkableCount < minWalkableSpaces then
         print("WARNING: Maze has too few walkable spaces (" .. walkableCount .. "), adding more...")
         WorldManager.ensureMinimumWalkableSpaces(maze, rows, cols, minWalkableSpaces)
@@ -322,15 +322,22 @@ function WorldManager.generateGameWorld()
     -- Final validation - ensure finale tile exists and is accessible
     WorldManager.validateFinaleTile(maze, finaleR, finaleC, rows, cols)
     
+    
     -- Debug check to verify finale tile placement
     local finaleCount, finalePositions = WorldManager.debugCheckFinaleTile(maze, rows, cols)
+    print("DEBUG: Finale tile count after placement: " .. finaleCount)
     
     -- CRITICAL SAFETY CHECK: If no finale tile exists, force create one
     if finaleCount == 0 then
         print("CRITICAL ERROR: No finale tile found after all attempts! Forcing creation...")
         finaleR, finaleC = WorldManager.emergencyCreateFinaleTile(maze, rows, cols, spawnR, spawnC)
         print("EMERGENCY: Created finale tile at " .. finaleR .. ", " .. finaleC)
+        
+        -- Verify the emergency creation worked
+        local finalCount, _ = WorldManager.debugCheckFinaleTile(maze, rows, cols)
+        print("DEBUG: Finale tile count after emergency creation: " .. finalCount)
     end
+    
     
     -- Ensure path exists from spawn to finale
     WorldManager.ensurePathToFinale(maze, spawnR, spawnC, finaleR, finaleC, rows, cols)
