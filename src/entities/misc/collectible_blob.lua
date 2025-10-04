@@ -1,21 +1,9 @@
---[[
-    Collectible Blob Entity Module
-    
-    Handles yellow collectible blobs that provide score points.
-    Manages collection logic and visual effects.
-]]
+
 
 local CollectibleBlob = {}
 local GameConfig = require("src.config.game_config")
 local Helpers = require("src.utils.helpers")
 
---[[
-    Creates a new collectible blob
-    
-    @param r number Row position
-    @param c number Column position
-    @return table Collectible blob object
-]]
 function CollectibleBlob.create(r, c)
     return {
         r = r,
@@ -26,24 +14,10 @@ function CollectibleBlob.create(r, c)
     }
 end
 
---[[
-    Checks if blob can be collected by player
-    
-    @param blob table Collectible blob object
-    @param player table Player object
-    @return boolean True if can be collected
-]]
 function CollectibleBlob.canCollect(blob, player)
     return not blob.collected and blob.r == player.r and blob.c == player.c
 end
 
---[[
-    Collects the blob
-    
-    @param blob table Collectible blob object
-    @param player table Player object
-    @return table Collection result with score and particles
-]]
 function CollectibleBlob.collect(blob, player)
     if not blob.collected then
         blob.collected = true
@@ -58,13 +32,6 @@ function CollectibleBlob.collect(blob, player)
     return nil
 end
 
---[[
-    Creates collection particles
-    
-    @param r number Row position
-    @param c number Column position
-    @return table Array of particles
-]]
 function CollectibleBlob._createParticles(r, c)
     local screenWidth, screenHeight = love.graphics.getDimensions()
     local cellSize, _, _, offsetX, offsetY = 
@@ -78,15 +45,6 @@ function CollectibleBlob._createParticles(r, c)
     )
 end
 
---[[
-    Places multiple collectible blobs on the maze
-    
-    @param maze table 2D maze array
-    @param rows number Number of maze rows
-    @param cols number Number of maze columns
-    @param count number Number of blobs to place
-    @return table 2D array of collectible blobs
-]]
 function CollectibleBlob.placeMultiple(maze, rows, cols, count)
     local blobs = Helpers.create2DArray(rows, cols, false)
     local placed = 0
@@ -107,12 +65,6 @@ function CollectibleBlob.placeMultiple(maze, rows, cols, count)
     return blobs
 end
 
---[[
-    Gets render data for the blob
-    
-    @param blob table Collectible blob object
-    @return table Render data
-]]
 function CollectibleBlob.getRenderData(blob)
     return {
         r = blob.r,
@@ -123,21 +75,10 @@ function CollectibleBlob.getRenderData(blob)
     }
 end
 
---[[
-    Checks if blob is collected
-    
-    @param blob table Collectible blob object
-    @return boolean True if collected
-]]
 function CollectibleBlob.isCollected(blob)
     return blob.collected
 end
 
---[[
-    Resets blob to uncollected state
-    
-    @param blob table Collectible blob object
-]]
 function CollectibleBlob.reset(blob)
     blob.collected = false
 end

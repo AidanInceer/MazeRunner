@@ -1,21 +1,7 @@
---[[
-    Maze Generation Module
-    
-    Handles procedural maze generation with rooms, corridors, and connectivity.
-    Ensures all areas are reachable and provides varied layouts.
-]]
-
 local MazeGenerator = {}
 local Helpers = require("src.utils.helpers")
 local GameConfig = require("src.config.game_config")
 
---[[
-    Generates a procedural maze with rooms and corridors
-    
-    @param rows number Number of rows in the maze
-    @param cols number Number of columns in the maze
-    @return table 2D maze array where true = wall, false = path
-]]
 function MazeGenerator.generateProceduralMaze(rows, cols)
     local maze = Helpers.create2DArray(rows, cols, true)  -- Start with all walls
     
@@ -37,14 +23,6 @@ function MazeGenerator.generateProceduralMaze(rows, cols)
     return maze
 end
 
---[[
-    Creates random rooms in the maze
-    
-    @param maze table 2D maze array
-    @param rows number Number of rows
-    @param cols number Number of columns
-    @return table Array of room objects
-]]
 function MazeGenerator._createRooms(maze, rows, cols)
     local numRooms = math.random(3, 6)
     local rooms = {}
@@ -75,12 +53,6 @@ function MazeGenerator._createRooms(maze, rows, cols)
     return rooms
 end
 
---[[
-    Connects rooms with L-shaped corridors
-    
-    @param maze table 2D maze array
-    @param rooms table Array of room objects
-]]
 function MazeGenerator._connectRooms(maze, rooms)
     for i = 1, #rooms - 1 do
         local room1 = rooms[i]
@@ -120,13 +92,6 @@ function MazeGenerator._connectRooms(maze, rooms)
     end
 end
 
---[[
-    Adds random corridors to the maze
-    
-    @param maze table 2D maze array
-    @param rows number Number of rows
-    @param cols number Number of columns
-]]
 function MazeGenerator._addRandomCorridors(maze, rows, cols)
     for i = 1, 25 do  -- Increased from 15 to 25
         local r = math.random(2, rows - 1)
@@ -154,13 +119,6 @@ function MazeGenerator._addRandomCorridors(maze, rows, cols)
     end
 end
 
---[[
-    Adds scattered open areas to the maze
-    
-    @param maze table 2D maze array
-    @param rows number Number of rows
-    @param cols number Number of columns
-]]
 function MazeGenerator._addScatteredAreas(maze, rows, cols)
     for i = 1, 25 do  -- Increased from 15 to 25
         local r = math.random(2, rows - 1)
@@ -179,13 +137,6 @@ function MazeGenerator._addScatteredAreas(maze, rows, cols)
     end
 end
 
---[[
-    Ensures all walkable areas are connected using flood fill
-    
-    @param maze table 2D maze array
-    @param rows number Number of rows
-    @param cols number Number of columns
-]]
 function MazeGenerator._ensureConnectivity(maze, rows, cols)
     -- Count total walkable cells
     local totalWalkable = 0
@@ -223,16 +174,6 @@ function MazeGenerator._ensureConnectivity(maze, rows, cols)
     end
 end
 
---[[
-    Performs flood fill to count reachable cells
-    
-    @param maze table 2D maze array
-    @param startR number Starting row
-    @param startC number Starting column
-    @param rows number Total rows
-    @param cols number Total columns
-    @return number Number of reachable cells
-]]
 function MazeGenerator._floodFill(maze, startR, startC, rows, cols)
     local visited = Helpers.create2DArray(rows, cols, false)
     local stack = {{startR, startC}}
@@ -260,13 +201,6 @@ function MazeGenerator._floodFill(maze, startR, startC, rows, cols)
     return reachableCount
 end
 
---[[
-    Adds edge openings for spawn/finale placement
-    
-    @param maze table 2D maze array
-    @param rows number Number of rows
-    @param cols number Number of columns
-]]
 function MazeGenerator.addEdgeOpenings(maze, rows, cols)
     local numOpenings = math.random(2, 4)
     for i = 1, numOpenings do
@@ -285,18 +219,6 @@ function MazeGenerator.addEdgeOpenings(maze, rows, cols)
     end
 end
 
---[[
-    Verifies there's a path from start to goal using A* pathfinding
-    
-    @param maze table 2D maze array
-    @param startR number Start row
-    @param startC number Start column
-    @param goalR number Goal row
-    @param goalC number Goal column
-    @param rows number Total rows
-    @param cols number Total columns
-    @return boolean True if path exists
-]]
 function MazeGenerator.findPath(maze, startR, startC, goalR, goalC, rows, cols)
     local openSet = {{startR, startC, 0, 0, nil}}  -- {r, c, g, f, parent}
     local closedSet = {}

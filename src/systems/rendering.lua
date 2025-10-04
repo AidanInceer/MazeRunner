@@ -5,7 +5,6 @@ local Helpers = require("src.utils.helpers")
 local GameState = require("src.core.game_state")
 
 function Rendering.drawMainMenu(screenWidth, screenHeight, startButton, colors)
-    -- Draw animated background with gradient
     for y = 0, screenHeight do
         local gradient = y / screenHeight
         local r = colors.background[1] * (0.7 + 0.3 * gradient)
@@ -15,12 +14,10 @@ function Rendering.drawMainMenu(screenWidth, screenHeight, startButton, colors)
         love.graphics.rectangle("fill", 0, y, screenWidth, 1)
     end
     
-    -- Draw decorative border
     love.graphics.setColor(colors.ui_text[1], colors.ui_text[2], colors.ui_text[3], 0.2)
     love.graphics.setLineWidth(4)
     love.graphics.rectangle("line", 20, 20, screenWidth - 40, screenHeight - 40)
     
-    -- Draw inner decorative border
     love.graphics.setColor(colors.ui_text[1], colors.ui_text[2], colors.ui_text[3], 0.1)
     love.graphics.setLineWidth(2)
     love.graphics.rectangle("line", 30, 30, screenWidth - 60, screenHeight - 60)
@@ -133,13 +130,6 @@ function Rendering.drawGame(screenWidth, screenHeight, maze, gameObjects, player
     Rendering._drawPoisonEnemies(gameObjects.poisonEnemies, cellSize, offsetX, offsetY)
 end
 
---[[
-    Renders the game UI
-    
-    @param playerData table Player data
-    @param screenHeight number Screen height
-    @param restartButton table Restart button data
-]]
 function Rendering.drawUI(playerData, screenHeight, restartButton, colors)
     local boxX, boxY = 15, 15
     local boxWidth, boxHeight = GameConfig.UI_BOX_WIDTH, GameConfig.UI_BOX_HEIGHT
@@ -222,14 +212,6 @@ function Rendering.drawUI(playerData, screenHeight, restartButton, colors)
     love.graphics.setColor(1, 1, 1, 1)
 end
 
---[[
-    Renders game over/win messages
-    
-    @param screenWidth number Screen width
-    @param screenHeight number Screen height
-    @param gameWon boolean Whether game is won
-    @param gameOver boolean Whether game is over
-]]
 function Rendering.drawGameMessages(screenWidth, screenHeight, gameWon, gameOver)
     if gameWon then
         love.graphics.setColor(1, 1, 0, 1)  -- Yellow text
@@ -284,19 +266,6 @@ end
 
 -- Private helper functions
 
---[[
-    Draws maze tiles with proper colors and hover effects
-    
-    @param maze table 2D maze array
-    @param rows number Number of rows
-    @param cols number Number of columns
-    @param cellSize number Size of each cell
-    @param offsetX number X offset
-    @param offsetY number Y offset
-    @param mouseX number Mouse X position
-    @param mouseY number Mouse Y position
-    @param gameObjects table Game objects
-]]
 function Rendering._drawMazeTiles(maze, rows, cols, cellSize, offsetX, offsetY, mouseX, mouseY, gameObjects, colors)
     for r = 1, rows do
         for c = 1, cols do
@@ -312,15 +281,6 @@ function Rendering._drawMazeTiles(maze, rows, cols, cellSize, offsetX, offsetY, 
     end
 end
 
---[[
-    Draws a wall tile
-    
-    @param tileType string Type of wall tile
-    @param x number X position
-    @param y number Y position
-    @param cellSize number Cell size
-    @param isHovered boolean Whether mouse is hovering
-]]
 function Rendering._drawWallTile(tileType, x, y, cellSize, isHovered, colors)
     -- Draw border
     if isHovered then
@@ -377,17 +337,6 @@ function Rendering._drawWallTile(tileType, x, y, cellSize, isHovered, colors)
     love.graphics.rectangle("fill", x + 2, y + 2, cellSize - 4, cellSize - 4)
 end
 
---[[
-    Draws a walkable tile with items
-    
-    @param x number X position
-    @param y number Y position
-    @param cellSize number Cell size
-    @param isHovered boolean Whether mouse is hovering
-    @param gameObjects table Game objects
-    @param r number Row position
-    @param c number Column position
-]]
 function Rendering._drawWalkableTile(x, y, cellSize, isHovered, gameObjects, r, c, colors)
     -- Draw border
     if isHovered then
@@ -409,16 +358,6 @@ function Rendering._drawWalkableTile(x, y, cellSize, isHovered, gameObjects, r, 
     Rendering._drawTileItems(x, y, cellSize, gameObjects, r, c)
 end
 
---[[
-    Draws items on a tile
-    
-    @param x number X position
-    @param y number Y position
-    @param cellSize number Cell size
-    @param gameObjects table Game objects
-    @param r number Row position
-    @param c number Column position
-]]
 function Rendering._drawTileItems(x, y, cellSize, gameObjects, r, c)
     local centerX = x + cellSize / 2
     local centerY = y + cellSize / 2
@@ -508,14 +447,6 @@ function Rendering._drawTileItems(x, y, cellSize, gameObjects, r, c)
     end
 end
 
---[[
-    Draws enemies
-    
-    @param enemies table Array of enemies
-    @param cellSize number Cell size
-    @param offsetX number X offset
-    @param offsetY number Y offset
-]]
 function Rendering._drawEnemies(enemies, cellSize, offsetX, offsetY)
     local ShaderManager = require("src.shaders.shader_manager")
     local LevelManager = require("src.core.level_manager")
@@ -618,14 +549,6 @@ function Rendering._drawEnemies(enemies, cellSize, offsetX, offsetY)
     end
 end
 
---[[
-    Draws the player
-    
-    @param playerData table Player data
-    @param cellSize number Cell size
-    @param offsetX number X offset
-    @param offsetY number Y offset
-]]
 function Rendering._drawPlayer(playerData, cellSize, offsetX, offsetY)
     local x, y = Helpers.getScreenPosition(cellSize, offsetX, offsetY, playerData.r, playerData.c)
     local time = love.timer.getTime()
@@ -689,13 +612,6 @@ function Rendering._drawPlayer(playerData, cellSize, offsetX, offsetY)
     end
 end
 
---[[
-    Draws visual effects
-    
-    @param animationData table Animation data
-    @param screenWidth number Screen width
-    @param screenHeight number Screen height
-]]
 function Rendering._drawEffects(animationData, screenWidth, screenHeight)
     -- Draw hit flash
     if animationData.hitFlashTimer > 0 then
@@ -722,13 +638,6 @@ function Rendering._drawEffects(animationData, screenWidth, screenHeight)
     end
 end
 
---[[
-    Draws a button
-    
-    @param button table Button data
-    @param text string Button text
-    @param fontSize number Font size
-]]
 function Rendering._drawButton(button, text, fontSize)
     -- Draw button background
     if button.hovered then
@@ -752,14 +661,6 @@ function Rendering._drawButton(button, text, fontSize)
         button.y + (button.height - textHeight) / 2)
 end
 
---[[
-    Draws the health bar
-    
-    @param health number Current health
-    @param maxHealth number Maximum health
-    @param x number X position
-    @param y number Y position
-]]
 function Rendering._drawHealthBar(health, maxHealth, x, y)
     local barWidth = GameConfig.HEALTH_BAR_WIDTH
     local barHeight = GameConfig.HEALTH_BAR_HEIGHT
@@ -808,16 +709,6 @@ function Rendering._drawHealthBar(health, maxHealth, x, y)
     love.graphics.rectangle("line", x + 1, y + 1, barWidth - 2, barHeight - 2)
 end
 
---[[
-    Draws a feature box for the main menu
-    
-    @param x number X position
-    @param y number Y position
-    @param width number Box width
-    @param height number Box height
-    @param text string Text to display
-    @param colors table Color scheme
-]]
 function Rendering._drawFeatureBox(x, y, width, height, text, colors)
     -- Box background with gradient
     love.graphics.setColor(colors.ui_background[1], colors.ui_background[2], colors.ui_background[3], 0.8)
@@ -847,14 +738,6 @@ function Rendering._drawFeatureBox(x, y, width, height, text, colors)
         y + (height - textHeight) / 2)
 end
 
---[[
-    Draws an enhanced button with better styling
-    
-    @param button table Button data
-    @param text string Button text
-    @param fontSize number Font size
-    @param colors table Color scheme
-]]
 function Rendering._drawEnhancedButton(button, text, fontSize, colors)
     -- Button shadow
     love.graphics.setColor(0, 0, 0, 0.3)

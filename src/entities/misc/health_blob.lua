@@ -1,21 +1,7 @@
---[[
-    Health Blob Entity Module
-    
-    Handles green health blobs that restore player health when collected.
-    Manages healing logic and visual effects.
-]]
-
 local HealthBlob = {}
 local GameConfig = require("src.config.game_config")
 local Helpers = require("src.utils.helpers")
 
---[[
-    Creates a new health blob
-    
-    @param r number Row position
-    @param c number Column position
-    @return table Health blob object
-]]
 function HealthBlob.create(r, c)
     return {
         r = r,
@@ -26,24 +12,10 @@ function HealthBlob.create(r, c)
     }
 end
 
---[[
-    Checks if blob can be collected by player
-    
-    @param blob table Health blob object
-    @param player table Player object
-    @return boolean True if can be collected
-]]
 function HealthBlob.canCollect(blob, player)
     return not blob.collected and blob.r == player.r and blob.c == player.c
 end
 
---[[
-    Collects the health blob
-    
-    @param blob table Health blob object
-    @param player table Player object
-    @return table Collection result with heal amount and particles
-]]
 function HealthBlob.collect(blob, player)
     if not blob.collected then
         blob.collected = true
@@ -59,13 +31,6 @@ function HealthBlob.collect(blob, player)
     return nil
 end
 
---[[
-    Creates collection particles
-    
-    @param r number Row position
-    @param c number Column position
-    @return table Array of particles
-]]
 function HealthBlob._createParticles(r, c)
     local screenWidth, screenHeight = love.graphics.getDimensions()
     local cellSize, _, _, offsetX, offsetY = 
@@ -79,15 +44,6 @@ function HealthBlob._createParticles(r, c)
     )
 end
 
---[[
-    Places multiple health blobs on the maze
-    
-    @param maze table 2D maze array
-    @param rows number Number of maze rows
-    @param cols number Number of maze columns
-    @param count number Number of blobs to place
-    @return table 2D array of health blobs
-]]
 function HealthBlob.placeMultiple(maze, rows, cols, count)
     local blobs = {}
     for r = 1, rows do
@@ -115,12 +71,6 @@ function HealthBlob.placeMultiple(maze, rows, cols, count)
     return blobs
 end
 
---[[
-    Gets render data for the blob
-    
-    @param blob table Health blob object
-    @return table Render data
-]]
 function HealthBlob.getRenderData(blob)
     return {
         r = blob.r,
@@ -131,31 +81,14 @@ function HealthBlob.getRenderData(blob)
     }
 end
 
---[[
-    Checks if blob is collected
-    
-    @param blob table Health blob object
-    @return boolean True if collected
-]]
 function HealthBlob.isCollected(blob)
     return blob.collected
 end
 
---[[
-    Resets blob to uncollected state
-    
-    @param blob table Health blob object
-]]
 function HealthBlob.reset(blob)
     blob.collected = false
 end
 
---[[
-    Gets the heal amount
-    
-    @param blob table Health blob object
-    @return number Heal amount
-]]
 function HealthBlob.getHealAmount(blob)
     return blob.healAmount
 end
