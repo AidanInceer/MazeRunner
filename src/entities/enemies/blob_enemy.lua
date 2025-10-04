@@ -1,6 +1,7 @@
 local BlobEnemy = {}
 local Enemy = require("src.entities.enemies.enemy")
 local GameConfig = require("src.config.game_config")
+local Helpers = require("src.utils.helpers")
 
 function BlobEnemy.create(r, c)
     local enemy = Enemy.create(r, c, "blob")
@@ -27,8 +28,23 @@ function BlobEnemy.update(enemy, maze, rows, cols, dt)
     enemy.blobTimer = enemy.blobTimer + dt
     enemy.blobPulse = 0.8 + 0.2 * math.sin(enemy.blobTimer * 3)
     
-    -- Use base enemy movement logic
-    return Enemy.update(enemy, maze, rows, cols, dt)
+    -- Update movement animation
+    if enemy.animProgress < 1.0 then
+        enemy.animProgress = enemy.animProgress + dt * enemy.animSpeed
+        if enemy.animProgress >= 1.0 then
+            enemy.animProgress = 1.0
+            enemy.animR = enemy.targetR
+            enemy.animC = enemy.targetC
+        else
+            -- Interpolate between starting position and target position with smooth easing
+            local easedProgress = Enemy._easeInOutCubic(enemy.animProgress)
+            enemy.animR = enemy.startR + (enemy.targetR - enemy.startR) * easedProgress
+            enemy.animC = enemy.startC + (enemy.targetC - enemy.startC) * easedProgress
+        end
+    end
+    
+    -- Use custom blob movement logic that checks all 4 cells
+    return BlobEnemy.move(enemy, maze, rows, cols, dt)
 end
 
 function BlobEnemy.checkPlayerCollision(enemy, player)
@@ -53,11 +69,68 @@ function BlobEnemy.handlePlayerCollision(enemy, player)
     return "none"
 end
 
+function BlobEnemy.move(enemy, maze, rows, cols, dt)
+    -- Custom movement logic for 2x2 blob enemies
+    enemy.moveTimer = (enemy.moveTimer or 0) + dt
+    
+    if enemy.moveTimer >= enemy.moveInterval then
+        enemy.moveTimer = 0
+        
+        local newR, newC = enemy.r, enemy.c
+        
+        -- Calculate new position based on direction
+        if enemy.direction == GameConfig.DIRECTIONS.UP then
+            newR = newR - 1
+        elseif enemy.direction == GameConfig.DIRECTIONS.DOWN then
+            newR = newR + 1
+        elseif enemy.direction == GameConfig.DIRECTIONS.LEFT then
+            newC = newC - 1
+        elseif enemy.direction == GameConfig.DIRECTIONS.RIGHT then
+            newC = newC + 1
+        end
+        
+        -- Check if all 4 cells for the 2x2 blob are walkable
+        local canMove = true
+        for dr = 0, 1 do
+            for dc = 0, 1 do
+                local checkR = newR + dr
+                local checkC = newC + dc
+                if not Helpers.isValidPosition(checkR, checkC, rows, cols) or
+                   (maze[checkR][checkC] and maze[checkR][checkC] ~= "spawn" and maze[checkR][checkC] ~= "finale") then
+                    canMove = false
+                    break
+                end
+            end
+            if not canMove then break end
+        end
+        
+        if canMove then
+            -- Set up animation for smooth movement
+            enemy.targetR = newR
+            enemy.targetC = newC
+            enemy.animProgress = 0.0
+            enemy.startR = enemy.r
+            enemy.startC = enemy.c
+            
+            -- Update actual position immediately for collision detection
+            enemy.r, enemy.c = newR, newC
+            
+            -- Update blob cell positions
+            BlobEnemy.onAfterMove(enemy, newR, newC)
+            
+            return true
+        else
+            -- Choose new random direction if blocked
+            enemy.direction = math.random(1, 4)
+        end
+    end
+    
+    return false
+end
+
 function BlobEnemy.onBeforeMove(enemy, newR, newC)
-    -- Blob needs to check if all 4 cells are available
-    -- This function is called by the base enemy movement, but we need to override
-    -- the movement logic entirely for blob enemies since they're 2x2
-    return true  -- Let the base movement handle the basic validation
+    -- This function is no longer used since we override the move function
+    return true
 end
 
 function BlobEnemy.onAfterMove(enemy, newR, newC)

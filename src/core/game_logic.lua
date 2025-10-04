@@ -161,6 +161,55 @@ function GameLogic.handlePlayerMovement(key)
             end
         end
         
+        -- Check for blob enemy collision at new position (2x2 collision)
+        if gameObjects.blobEnemies then
+            for _, blobEnemy in ipairs(gameObjects.blobEnemies) do
+                -- Check if player is moving into any of the 4 cells occupied by the blob
+                local blobR1, blobC1 = blobEnemy.r, blobEnemy.c
+                local blobR2, blobC2 = blobEnemy.r + 1, blobEnemy.c
+                local blobR3, blobC3 = blobEnemy.r, blobEnemy.c + 1
+                local blobR4, blobC4 = blobEnemy.r + 1, blobEnemy.c + 1
+                
+                if (newR == blobR1 and newC == blobC1) or
+                   (newR == blobR2 and newC == blobC2) or
+                   (newR == blobR3 and newC == blobC3) or
+                   (newR == blobR4 and newC == blobC4) then
+                    -- Player is moving into a blob enemy
+                    if playerData.immune and playerData.immunityKills > 0 then
+                        -- Kill blob enemy
+                        blobEnemy.r = -1  -- Mark for removal
+                        GameState.killEnemy()
+                        -- Allow movement after killing enemy
+                    else
+                        -- Damage player and prevent movement
+                        GameState.takeDamage(GameConfig.ENEMY_DAMAGE.BLOB)
+                        GameState.setHitFlash(GameConfig.ENEMY_HIT_FLASH_DURATION)
+                        return  -- Don't move the player
+                    end
+                end
+            end
+        end
+        
+        -- Check for lightning enemy collision at new position
+        if gameObjects.lightningEnemies then
+            for _, lightningEnemy in ipairs(gameObjects.lightningEnemies) do
+                if lightningEnemy.r == newR and lightningEnemy.c == newC then
+                    -- Player is moving into a lightning enemy
+                    if playerData.immune and playerData.immunityKills > 0 then
+                        -- Kill lightning enemy
+                        lightningEnemy.r = -1  -- Mark for removal
+                        GameState.killEnemy()
+                        -- Allow movement after killing enemy
+                    else
+                        -- Damage player and prevent movement
+                        GameState.takeDamage(GameConfig.ENEMY_DAMAGE.LIGHTNING)
+                        GameState.setHitFlash(GameConfig.ENEMY_HIT_FLASH_DURATION)
+                        return  -- Don't move the player
+                    end
+                end
+            end
+        end
+        
         GameState.setPlayerPosition(newR, newC)
         GameState.markVisited(newR, newC)
         
