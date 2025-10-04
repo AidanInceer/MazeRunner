@@ -7,6 +7,7 @@ local GameState = require("src.core.game_state")
 local WorldManager = require("src.world.world_manager")
 local Helpers = require("src.utils.helpers")
 local PoisonEnemy = require("src.entities.enemies.poison_enemy")
+local SplashEnemy = require("src.entities.enemies.splash_enemy")
 
 -- Handle item collection when player moves to a new position
 function GameLogic.handleItemCollection(r, c, gameObjects)
@@ -121,21 +122,41 @@ function GameLogic.handlePlayerMovement(key)
         -- Check for poison enemy collision at new position
         if gameObjects.poisonEnemies then
             for _, poisonEnemy in ipairs(gameObjects.poisonEnemies) do
-            if poisonEnemy.r == newR and poisonEnemy.c == newC then
-                -- Player is moving into a poison enemy
-                if playerData.immune and playerData.immunityKills > 0 then
-                    -- Kill poison enemy
-                    poisonEnemy.r = -1  -- Mark for removal
-                    GameState.killEnemy()
-                    -- Allow movement after killing enemy
-                else
-                    -- Poison player and prevent movement
-                    GameState.setPlayerPoisoned(true, GameConfig.POISON_DURATION)
-                    GameState.setHitFlash(GameConfig.ENEMY_HIT_FLASH_DURATION)
-                    return  -- Don't move the player
+                if poisonEnemy.r == newR and poisonEnemy.c == newC then
+                    -- Player is moving into a poison enemy
+                    if playerData.immune and playerData.immunityKills > 0 then
+                        -- Kill poison enemy
+                        poisonEnemy.r = -1  -- Mark for removal
+                        GameState.killEnemy()
+                        -- Allow movement after killing enemy
+                    else
+                        -- Poison player and prevent movement
+                        GameState.setPlayerPoisoned(true, GameConfig.POISON_DURATION)
+                        GameState.setHitFlash(GameConfig.ENEMY_HIT_FLASH_DURATION)
+                        return  -- Don't move the player
+                    end
                 end
             end
         end
+        
+        -- Check for splash enemy collision at new position
+        if gameObjects.splashEnemies then
+            for _, splashEnemy in ipairs(gameObjects.splashEnemies) do
+                if splashEnemy.r == newR and splashEnemy.c == newC then
+                    -- Player is moving into a splash enemy
+                    if playerData.immune and playerData.immunityKills > 0 then
+                        -- Kill splash enemy
+                        splashEnemy.r = -1  -- Mark for removal
+                        GameState.killEnemy()
+                        -- Allow movement after killing enemy
+                    else
+                        -- Damage player and prevent movement
+                        GameState.takeDamage(GameConfig.ENEMY_DAMAGE)
+                        GameState.setHitFlash(GameConfig.ENEMY_HIT_FLASH_DURATION)
+                        return  -- Don't move the player
+                    end
+                end
+            end
         end
         
         GameState.setPlayerPosition(newR, newC)
@@ -335,6 +356,97 @@ function GameLogic.updatePoisonEnemies(dt)
     -- Update the game objects with the modified arrays
     gameObjects.poisonEnemies = poisonEnemies
     gameObjects.poisonTiles = poisonTiles
+end
+
+-- Update splash enemies and manage splash tiles
+function GameLogic.updateSplashEnemies(dt)
+    local gameObjects = GameState.getGameObjects()
+    local playerData = GameState.getPlayerData()
+    
+    -- Ensure splash arrays are initialized
+    if not gameObjects.splashEnemies then
+        gameObjects.splashEnemies = {}
+    end
+    if not gameObjects.splashTiles then
+        gameObjects.splashTiles = {}
+    end
+    
+    local splashEnemies = gameObjects.splashEnemies
+    local splashTiles = gameObjects.splashTiles
+    
+    -- Update splash enemies
+    for i = #splashEnemies, 1, -1 do
+        local splashEnemy = splashEnemies[i]
+        
+        -- Remove dead enemies
+        if splashEnemy.r == -1 then
+            table.remove(splashEnemies, i)
+        else
+            -- Check if enemy just started splashing
+            local wasSplashing = splashEnemy.isSplashing
+            
+            -- Update enemy movement
+            SplashEnemy.update(splashEnemy, gameObjects.maze, GameConfig.MAZE_ROWS, GameConfig.MAZE_COLS, dt)
+            
+            -- Check if enemy just started splashing (transitioned from not splashing to splashing)
+            if not wasSplashing and splashEnemy.isSplashing then
+                -- Enemy just started splashing, create splash tiles
+                -- Enemy just started splashing, create splash tiles
+                local splashArea = SplashEnemy.getSplashArea(splashEnemy)
+                for _, pos in ipairs(splashArea) do
+                    -- Add splash tile at position (only if not a wall)
+                    if Helpers.isValidPosition(pos.r, pos.c, GameConfig.MAZE_ROWS, GameConfig.MAZE_COLS) and
+                       not gameObjects.maze[pos.r][pos.c] then
+                        if not splashTiles[pos.r] then
+                            splashTiles[pos.r] = {}
+                        end
+                        splashTiles[pos.r][pos.c] = {
+                            timer = 2.0,  -- 2 seconds duration
+                            r = pos.r,
+                            c = pos.c
+                        }
+                    end
+                end
+            end
+            
+            -- Check collision with player
+            if SplashEnemy.checkPlayerCollision(splashEnemy, playerData) then
+                local result = SplashEnemy.handlePlayerCollision(splashEnemy, playerData)
+                if result == "killed" then
+                    splashEnemy.r = -1  -- Mark for removal
+                    GameState.killEnemy()
+                elseif result == "damaged" then
+                    GameState.takeDamage(GameConfig.ENEMY_DAMAGE)
+                    GameState.setHitFlash(GameConfig.ENEMY_HIT_FLASH_DURATION)
+                end
+            end
+        end
+    end
+    
+    -- Update splash tiles
+    for r = 1, GameConfig.MAZE_ROWS do
+        if splashTiles[r] then
+            for c = 1, GameConfig.MAZE_COLS do
+                if splashTiles[r][c] then
+                    splashTiles[r][c].timer = splashTiles[r][c].timer - dt
+                    if splashTiles[r][c].timer <= 0 then
+                        splashTiles[r][c] = nil
+                    end
+                end
+            end
+        end
+    end
+    
+    -- Check player collision with splash tiles
+    if splashTiles[playerData.r] and splashTiles[playerData.r][playerData.c] then
+        -- Player is on a splash tile, damage them
+        GameState.takeDamage(GameConfig.SPLASH_TILE_DAMAGE)
+        GameState.setHitFlash(GameConfig.ENEMY_HIT_FLASH_DURATION)
+    end
+    
+    -- Update the game objects with the modified arrays
+    gameObjects.splashEnemies = splashEnemies
+    gameObjects.splashTiles = splashTiles
 end
 
 -- Update poison damage over time

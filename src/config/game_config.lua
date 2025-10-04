@@ -18,11 +18,13 @@ GameConfig.IMMUNITY_BLOB_COUNT = 5
 GameConfig.IMMUNITY_BLOB_KILLS = 1
 GameConfig.ENEMY_COUNT = 5
 GameConfig.POISON_ENEMY_COUNT = 2
+GameConfig.SPLASH_ENEMY_COUNT = 1  -- Base count, will be scaled by level
 
 -- Enemy settings
 GameConfig.ENEMY_MOVE_INTERVAL = 0.6  -- seconds between moves
 GameConfig.ENEMY_DAMAGE = 20
 GameConfig.DAMAGE_TILE_DAMAGE = 10
+GameConfig.SPLASH_TILE_DAMAGE = 50  -- Damage from splash enemy burning tiles
 GameConfig.HEALTH_RESTORE = 10
 
 -- Poison settings

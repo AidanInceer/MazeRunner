@@ -3,6 +3,7 @@ local Rendering = {}
 local GameConfig = require("src.config.game_config")
 local Helpers = require("src.utils.helpers")
 local GameState = require("src.core.game_state")
+local SplashEnemy = require("src.entities.enemies.splash_enemy")
 
 function Rendering.drawMainMenu(screenWidth, screenHeight, startButton, colors)
     for y = 0, screenHeight do
@@ -117,6 +118,9 @@ function Rendering.drawGame(screenWidth, screenHeight, maze, gameObjects, player
     -- Draw enemies (with shaders)
     Rendering._drawEnemies(gameObjects.enemies, cellSize, offsetX, offsetY)
     
+    -- Draw splash tiles (fire/burn effect)
+    Rendering._drawSplashTiles(gameObjects.splashTiles, cellSize, offsetX, offsetY)
+    
     -- Draw poison tiles (bright green trail)
     Rendering._drawPoisonTiles(gameObjects.poisonTiles, cellSize, offsetX, offsetY)
     
@@ -125,6 +129,9 @@ function Rendering.drawGame(screenWidth, screenHeight, maze, gameObjects, player
     
     -- Draw effects
     Rendering._drawEffects(animationData, screenWidth, screenHeight)
+    
+    -- Draw splash enemies
+    Rendering._drawSplashEnemies(gameObjects.splashEnemies, cellSize, offsetX, offsetY)
     
     -- Draw poison enemies LAST - on top of everything
     Rendering._drawPoisonEnemies(gameObjects.poisonEnemies, cellSize, offsetX, offsetY)
@@ -805,6 +812,146 @@ function Rendering._drawPoisonEnemies(poisonEnemies, cellSize, offsetX, offsetY)
         love.graphics.setLineWidth(3)
         love.graphics.rectangle("line", x - 2, y - 2, cellSize + 4, cellSize + 4)
         love.graphics.setLineWidth(1)
+    end
+end
+
+-- Draw splash enemies
+function Rendering._drawSplashEnemies(splashEnemies, cellSize, offsetX, offsetY)
+    if not splashEnemies then
+        return
+    end
+    
+    for _, enemy in ipairs(splashEnemies) do
+        local x, y = Helpers.getScreenPosition(cellSize, offsetX, offsetY, enemy.r, enemy.c)
+        
+        -- Get animation data
+        local animData = SplashEnemy.getAnimationData(enemy)
+        local jumpOffset = 0
+        local flashIntensity = 0
+        
+        -- Apply jump animation
+        if animData.phase == 1 then
+            local jumpProgress = animData.timer / 0.2
+            jumpOffset = math.sin(jumpProgress * math.pi) * 15
+        end
+        
+        -- Apply flash effect
+        if animData.phase == 2 then
+            flashIntensity = math.sin(animData.timer * 20) * 0.5 + 0.5
+        end
+        
+        -- Adjust position for jump
+        y = y - jumpOffset
+        
+        -- Base fire colors - brighter and more intense
+        local baseColor = {1.0, 0.5, 0.0}  -- Bright orange
+        local fireColor = {1.0, 0.8, 0.0}  -- Golden orange
+        
+        if animData.isSplashing then
+            -- Fire effect during splash
+            local time = love.timer.getTime()
+            local pulse = 0.8 + 0.2 * math.sin(time * 6)
+            
+            -- Outer fire glow - brighter
+            love.graphics.setColor(1.0, 0.6, 0.0, 0.8 * pulse)
+            love.graphics.rectangle("fill", x - 10, y - 10, cellSize + 20, cellSize + 20)
+            
+            -- Middle fire layer
+            love.graphics.setColor(1.0, 0.7, 0.0, 0.9 * pulse)
+            love.graphics.rectangle("fill", x - 6, y - 6, cellSize + 12, cellSize + 12)
+            
+            -- Main fire body - brighter
+            love.graphics.setColor(fireColor[1], fireColor[2], fireColor[3], 1)
+            love.graphics.rectangle("fill", x - 2, y - 2, cellSize + 4, cellSize + 4)
+            
+            -- Flash effect - more intense
+            if flashIntensity > 0 then
+                love.graphics.setColor(1, 1, 0.3, flashIntensity * 0.9)
+                love.graphics.rectangle("fill", x - 2, y - 2, cellSize + 4, cellSize + 4)
+                -- Add white flash
+                love.graphics.setColor(1, 1, 1, flashIntensity * 0.4)
+                love.graphics.rectangle("fill", x - 1, y - 1, cellSize + 2, cellSize + 2)
+            end
+            
+            -- Center fire core - brighter
+            love.graphics.setColor(1, 1, 0.2, 1)
+            local centerX, centerY = x + cellSize/2, y + cellSize/2
+            love.graphics.circle("fill", centerX, centerY, 7)
+            
+            -- Inner white-hot core
+            love.graphics.setColor(1, 1, 1, 0.8)
+            love.graphics.circle("fill", centerX, centerY, 3)
+        else
+            -- Normal state - brighter with subtle glow
+            -- Outer glow
+            love.graphics.setColor(baseColor[1], baseColor[2], baseColor[3], 0.3)
+            love.graphics.rectangle("fill", x - 4, y - 4, cellSize + 8, cellSize + 8)
+            
+            -- Main body
+            love.graphics.setColor(baseColor[1], baseColor[2], baseColor[3], 1)
+            love.graphics.rectangle("fill", x - 2, y - 2, cellSize + 4, cellSize + 4)
+            
+            -- Center dot - brighter
+            love.graphics.setColor(1, 0.9, 0, 1)
+            local centerX, centerY = x + cellSize/2, y + cellSize/2
+            love.graphics.circle("fill", centerX, centerY, 5)
+            
+            -- Inner bright core
+            love.graphics.setColor(1, 1, 0.3, 1)
+            love.graphics.circle("fill", centerX, centerY, 2)
+        end
+        
+        -- Border for visibility
+        love.graphics.setColor(0, 0, 0, 1)
+        love.graphics.setLineWidth(2)
+        love.graphics.rectangle("line", x - 2, y - 2, cellSize + 4, cellSize + 4)
+        love.graphics.setLineWidth(1)
+    end
+end
+
+-- Draw splash tiles
+function Rendering._drawSplashTiles(splashTiles, cellSize, offsetX, offsetY)
+    if not splashTiles then
+        return
+    end
+    
+    for r = 1, GameConfig.MAZE_ROWS do
+        if splashTiles[r] then
+            for c = 1, GameConfig.MAZE_COLS do
+                if splashTiles[r][c] then
+                    local x, y = Helpers.getScreenPosition(cellSize, offsetX, offsetY, r, c)
+                    local splashTile = splashTiles[r][c]
+                    
+                    -- Calculate intensity based on remaining time
+                    local intensity = splashTile.timer / 2.0  -- 2 seconds duration
+                    local alpha = 0.3 + 0.7 * intensity
+                    
+                    -- Enhanced fire effect with pulsing
+                    local time = love.timer.getTime()
+                    local pulse = 0.8 + 0.2 * math.sin(time * 10)
+                    
+                    -- Outer fire glow - brighter
+                    love.graphics.setColor(1.0, 0.5, 0.0, alpha * 0.6 * pulse)
+                    love.graphics.rectangle("fill", x - 6, y - 6, cellSize + 12, cellSize + 12)
+                    
+                    -- Middle fire layer
+                    love.graphics.setColor(1.0, 0.7, 0.0, alpha * 0.8 * pulse)
+                    love.graphics.rectangle("fill", x - 2, y - 2, cellSize + 4, cellSize + 4)
+                    
+                    -- Main fire - brighter
+                    love.graphics.setColor(1.0, 0.8, 0.0, alpha * pulse)
+                    love.graphics.rectangle("fill", x, y, cellSize, cellSize)
+                    
+                    -- Bright center - more intense
+                    love.graphics.setColor(1.0, 1.0, 0.2, alpha)
+                    love.graphics.rectangle("fill", x + 2, y + 2, cellSize - 4, cellSize - 4)
+                    
+                    -- Inner white-hot core
+                    love.graphics.setColor(1.0, 1.0, 1.0, alpha * 0.6)
+                    love.graphics.rectangle("fill", x + 6, y + 6, cellSize - 12, cellSize - 12)
+                end
+            end
+        end
     end
 end
 

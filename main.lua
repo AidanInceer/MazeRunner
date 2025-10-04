@@ -37,6 +37,7 @@ function love.update(dt)
     GameLogic.updateParticles(dt)
     GameLogic.updateEnemies(dt)
     GameLogic.updatePoisonEnemies(dt)
+    GameLogic.updateSplashEnemies(dt)
     GameLogic.updatePoisonDamage(dt)
     GameState.updateSpikeAnimation(dt)
 end

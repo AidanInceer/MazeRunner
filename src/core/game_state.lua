@@ -200,6 +200,8 @@ function GameState.getGameObjects()
         enemies = state.enemies,
         poisonEnemies = state.poisonEnemies,
         poisonTiles = state.poisonTiles,
+        splashEnemies = state.splashEnemies,
+        splashTiles = state.splashTiles,
         visited = state.visited
     }
 end
@@ -214,6 +216,8 @@ function GameState.setGameObjects(objects)
     state.enemies = objects.enemies or state.enemies
     state.poisonEnemies = objects.poisonEnemies
     state.poisonTiles = objects.poisonTiles
+    state.splashEnemies = objects.splashEnemies
+    state.splashTiles = objects.splashTiles
     state.visited = objects.visited or state.visited
     
 end
