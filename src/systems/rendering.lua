@@ -433,21 +433,26 @@ end
 -- Private helper functions
 
 function Rendering._drawMazeTiles(maze, rows, cols, cellSize, offsetX, offsetY, mouseX, mouseY, gameObjects, colors)
+    local MultiTierGenerator = require("src.world.multi_tier_generator")
+    
     for r = 1, rows do
         for c = 1, cols do
             local x, y = Helpers.getScreenPosition(cellSize, offsetX, offsetY, r, c)
             local isHovered = Helpers.isMouseHovering(mouseX, mouseY, x, y, cellSize, cellSize)
             
+            -- Get floor level for this tile
+            local floorLevel = MultiTierGenerator.getFloorLevel(r, c, gameObjects.elevatedZones or {})
+            
             if maze[r][c] then
-                Rendering._drawWallTile(maze[r][c], x, y, cellSize, isHovered, colors)
+                Rendering._drawWallTile(maze[r][c], x, y, cellSize, isHovered, colors, floorLevel)
             else
-                Rendering._drawWalkableTile(x, y, cellSize, isHovered, gameObjects, r, c, colors)
+                Rendering._drawWalkableTile(x, y, cellSize, isHovered, gameObjects, r, c, colors, floorLevel)
             end
         end
     end
 end
 
-function Rendering._drawWallTile(tileType, x, y, cellSize, isHovered, colors)
+function Rendering._drawWallTile(tileType, x, y, cellSize, isHovered, colors, floorLevel)
     -- Draw border
     if isHovered then
         love.graphics.setColor(colors.wall_hover_border)
@@ -520,22 +525,83 @@ function Rendering._drawWallTile(tileType, x, y, cellSize, isHovered, colors)
     love.graphics.rectangle("fill", x + 2, y + 2, cellSize - 4, cellSize - 4)
 end
 
-function Rendering._drawWalkableTile(x, y, cellSize, isHovered, gameObjects, r, c, colors)
-    -- Draw border
+function Rendering._drawWalkableTile(x, y, cellSize, isHovered, gameObjects, r, c, colors, floorLevel)
+    -- Adjust colors for elevated zones (much more distinct)
+    local isElevated = floorLevel == GameConfig.FLOOR_LEVELS.ELEVATED
+    local isRamp = floorLevel == "ramp"
+    
+    -- Draw subtle shadow for elevated tiles
+    if isElevated then
+        love.graphics.setColor(0, 0, 0, 0.25)
+        love.graphics.rectangle("fill", x + 2, y + 2, cellSize, cellSize)
+    end
+    
+    -- Draw border with elevation color adjustment
     if isHovered then
         love.graphics.setColor(colors.walkable_hover_border)
     else
-        love.graphics.setColor(colors.walkable_border)
+        if isElevated then
+            -- Subtle lighter shade for elevated zones (warmer tint)
+            love.graphics.setColor(
+                math.min(1, colors.walkable_border[1] * 1.4 + 0.1),
+                math.min(1, colors.walkable_border[2] * 1.35 + 0.08),
+                math.min(1, colors.walkable_border[3] * 1.3 + 0.05),
+                colors.walkable_border[4]
+            )
+        elseif isRamp then
+            -- Gold/yellow for ramps
+            love.graphics.setColor(0.85, 0.75, 0.3, 1)
+        else
+            love.graphics.setColor(colors.walkable_border)
+        end
     end
     love.graphics.rectangle("fill", x, y, cellSize, cellSize)
     
-    -- Draw inner
+    -- Draw inner with elevation color adjustment
     if isHovered then
         love.graphics.setColor(colors.walkable_hover_inner)
     else
-        love.graphics.setColor(colors.walkable_inner)
+        if isElevated then
+            -- Subtle lighter inner for elevated zones (warm tint)
+            love.graphics.setColor(
+                math.min(1, colors.walkable_inner[1] * 1.35 + 0.08),
+                math.min(1, colors.walkable_inner[2] * 1.3 + 0.06),
+                math.min(1, colors.walkable_inner[3] * 1.25 + 0.04),
+                colors.walkable_inner[4]
+            )
+        elseif isRamp then
+            -- Gold inner for ramps
+            love.graphics.setColor(0.75, 0.65, 0.25, 1)
+        else
+            love.graphics.setColor(colors.walkable_inner)
+        end
     end
     love.graphics.rectangle("fill", x + 2, y + 2, cellSize - 4, cellSize - 4)
+    
+    -- Draw simple ramp indicator
+    if isRamp then
+        local centerX, centerY = x + cellSize/2, y + cellSize/2
+        
+        -- Draw simple up/down arrows
+        love.graphics.setColor(1, 1, 1, 0.8)
+        love.graphics.setLineWidth(2)
+        
+        -- Up arrow (triangle)
+        love.graphics.polygon("fill", 
+            centerX, centerY - 6,
+            centerX - 4, centerY - 2,
+            centerX + 4, centerY - 2
+        )
+        
+        -- Down arrow (triangle)
+        love.graphics.polygon("fill", 
+            centerX, centerY + 6,
+            centerX - 4, centerY + 2,
+            centerX + 4, centerY + 2
+        )
+        
+        love.graphics.setLineWidth(1)
+    end
     
     -- Draw items
     Rendering._drawTileItems(x, y, cellSize, gameObjects, r, c)

@@ -8,6 +8,7 @@ local state = {
     gameOver = false,
     playerR = 1,
     playerC = 1,
+    playerFloor = 0,  -- Floor level (0 = ground, 1 = elevated)
     playerHealth = GameConfig.MAX_HEALTH,
     maxHealth = GameConfig.MAX_HEALTH,
     score = 0,
@@ -19,6 +20,7 @@ local state = {
     playerPoisoned = false,
     poisonTimer = 0,
     maze = {},
+    elevatedZones = {},  -- Multi-tier level zones
     collectibles = {},
     damageTiles = {},
     healthBlobs = {},
@@ -80,6 +82,7 @@ function GameState.initialize()
     state.gameState = GameConfig.STATES.MENU
     state.gameWon = false
     state.gameOver = false
+    state.playerFloor = GameConfig.FLOOR_LEVELS.GROUND  -- Reset to ground floor
     state.playerHealth = GameConfig.MAX_HEALTH
     state.maxHealth = GameConfig.MAX_HEALTH
     state.score = 0
@@ -105,6 +108,7 @@ function GameState.getPlayerData()
     return {
         r = state.playerR,
         c = state.playerC,
+        floor = state.playerFloor,
         health = state.playerHealth,
         maxHealth = state.maxHealth,
         score = state.score,
@@ -115,9 +119,20 @@ function GameState.getPlayerData()
     }
 end
 
-function GameState.setPlayerPosition(r, c)
+function GameState.setPlayerPosition(r, c, floor)
     state.playerR = r
     state.playerC = c
+    if floor ~= nil then
+        state.playerFloor = floor
+    end
+end
+
+function GameState.setPlayerFloor(floor)
+    state.playerFloor = floor
+end
+
+function GameState.getPlayerFloor()
+    return state.playerFloor
 end
 
 function GameState.setCurrentLevel(level)
@@ -245,6 +260,7 @@ end
 function GameState.getGameObjects()
     return {
         maze = state.maze,
+        elevatedZones = state.elevatedZones,
         collectibles = state.collectibles,
         damageTiles = state.damageTiles,
         healthBlobs = state.healthBlobs,
@@ -266,6 +282,7 @@ end
 
 function GameState.setGameObjects(objects)
     state.maze = objects.maze or state.maze
+    state.elevatedZones = objects.elevatedZones or state.elevatedZones
     state.collectibles = objects.collectibles or state.collectibles
     state.damageTiles = objects.damageTiles or state.damageTiles
     state.healthBlobs = objects.healthBlobs or state.healthBlobs

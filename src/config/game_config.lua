@@ -5,6 +5,14 @@ local GameConfig = {}
 GameConfig.MAZE_ROWS = 30
 GameConfig.MAZE_COLS = 30
 
+-- Multi-tier level settings
+GameConfig.FLOOR_LEVELS = {
+    GROUND = 0,
+    ELEVATED = 1
+}
+GameConfig.ELEVATED_ZONES_PER_LEVEL = 2
+GameConfig.MIN_ELEVATED_ZONE_SIZE = 40  -- Minimum blocks per elevated zone
+
 -- Game objectives
 GameConfig.MAX_SCORE = 10
 GameConfig.MAX_HEALTH = 100

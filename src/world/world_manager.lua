@@ -1,6 +1,8 @@
 -- World generation and management system
 local WorldManager = {}
+
 local MazeGenerator = require("src.world.maze_generator")
+local MultiTierGenerator = require("src.world.multi_tier_generator")
 local LevelManager = require("src.core.level_manager")
 local LevelConfig = require("src.config.level_config")
 local GameConfig = require("src.config.game_config")
@@ -147,6 +149,43 @@ function WorldManager.absoluteFallbackFinaleTile(maze, rows, cols, avoidR, avoid
     return r, c
 end
 
+-- Find an untrapped spawn position on ground floor
+function WorldManager.findUntrappedSpawnPosition(maze, rows, cols, elevatedZones)
+    local MultiTierGenerator = require("src.world.multi_tier_generator")
+    
+    -- Find all ground floor walkable positions with valid adjacent movement
+    for r = 1, rows do
+        for c = 1, cols do
+            if not maze[r][c] and MultiTierGenerator.getFloorLevel(r, c, elevatedZones) == GameConfig.FLOOR_LEVELS.GROUND then
+                -- Check if at least one adjacent tile is walkable on ground floor
+                local directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}}
+                for _, dir in ipairs(directions) do
+                    local adjR, adjC = r + dir[1], c + dir[2]
+                    if Helpers.isValidPosition(adjR, adjC, rows, cols) and not maze[adjR][adjC] then
+                        local adjFloor = MultiTierGenerator.getFloorLevel(adjR, adjC, elevatedZones)
+                        if adjFloor == GameConfig.FLOOR_LEVELS.GROUND or adjFloor == "ramp" then
+                            print("DEBUG: Found untrapped spawn position at " .. r .. ", " .. c)
+                            return r, c
+                        end
+                    end
+                end
+            end
+        end
+    end
+    
+    -- Fallback - just find any ground floor position
+    for r = 1, rows do
+        for c = 1, cols do
+            if not maze[r][c] and MultiTierGenerator.getFloorLevel(r, c, elevatedZones) == GameConfig.FLOOR_LEVELS.GROUND then
+                print("DEBUG: Using fallback spawn position at " .. r .. ", " .. c)
+                return r, c
+            end
+        end
+    end
+    
+    return 1, 1  -- Last resort
+end
+
 -- Force placement of finale tile - ensures it's always placed
 function WorldManager.forcePlaceFinaleTile(maze, rows, cols, avoidR, avoidC)
     -- First try to find any walkable position
@@ -168,16 +207,17 @@ function WorldManager.forcePlaceFinaleTile(maze, rows, cols, avoidR, avoidC)
 end
 
 -- Place a special tile (spawn or finale) on the maze edges
-function WorldManager.placeSpecialTile(maze, rows, cols, tileType, avoidR, avoidC, preferredR, preferredC)
-    -- For finale tiles, always place on a walkable area
+function WorldManager.placeSpecialTile(maze, rows, cols, tileType, avoidR, avoidC, preferredR, preferredC, elevatedZones)
+    -- For finale tiles, always place on a walkable area (ground floor only)
     if tileType == "finale" then
         print("DEBUG: Attempting to place finale tile, avoiding spawn at " .. (avoidR or "nil") .. ", " .. (avoidC or "nil"))
         
-        -- Find all walkable positions
+        -- Find all walkable positions on ground floor
         local walkablePositions = {}
         for r = 1, rows do
             for c = 1, cols do
-                if not maze[r][c] and not (avoidR and avoidC and r == avoidR and c == avoidC) then
+                local isGroundFloor = MultiTierGenerator.getFloorLevel(r, c, elevatedZones or {}) == GameConfig.FLOOR_LEVELS.GROUND
+                if not maze[r][c] and isGroundFloor and not (avoidR and avoidC and r == avoidR and c == avoidC) then
                     table.insert(walkablePositions, {r, c})
                 end
             end
@@ -205,12 +245,15 @@ function WorldManager.placeSpecialTile(maze, rows, cols, tileType, avoidR, avoid
     -- If a preferred position is provided and it's valid, use it
     if preferredR and preferredC then
         print("DEBUG: Preferred spawn position provided: " .. preferredR .. ", " .. preferredC)
+        local isGroundFloor = MultiTierGenerator.getFloorLevel(preferredR, preferredC, elevatedZones or {}) == GameConfig.FLOOR_LEVELS.GROUND
         print("DEBUG: Position valid: " .. tostring(Helpers.isValidPosition(preferredR, preferredC, rows, cols)))
         print("DEBUG: Position walkable: " .. tostring(not maze[preferredR][preferredC]))
+        print("DEBUG: Position on ground floor: " .. tostring(isGroundFloor))
         print("DEBUG: Not avoiding position: " .. tostring(not (avoidR and avoidC and preferredR == avoidR and preferredC == avoidC)))
         
         if Helpers.isValidPosition(preferredR, preferredC, rows, cols) and
            not maze[preferredR][preferredC] and
+           isGroundFloor and
            not (avoidR and avoidC and preferredR == avoidR and preferredC == avoidC) then
             r, c = preferredR, preferredC
             print("DEBUG: Using preferred spawn position at " .. r .. ", " .. c)
@@ -231,13 +274,14 @@ function WorldManager.placeSpecialTile(maze, rows, cols, tileType, avoidR, avoid
             c = math.random(1, cols)
             attempts = attempts + 1
             
-            -- If we can't find a suitable position, try any walkable position
+            -- If we can't find a suitable position, try any walkable position on ground floor
             if attempts > maxAttempts then
                 for r = 1, rows do
                     for c = 1, cols do
-                        if not maze[r][c] and not (avoidR and avoidC and r == avoidR and c == avoidC) then
+                        local isGroundFloor = MultiTierGenerator.getFloorLevel(r, c, elevatedZones or {}) == GameConfig.FLOOR_LEVELS.GROUND
+                        if not maze[r][c] and isGroundFloor and not (avoidR and avoidC and r == avoidR and c == avoidC) then
                             maze[r][c] = tileType
-                            print("DEBUG: Placed spawn tile at walkable position " .. r .. ", " .. c)
+                            print("DEBUG: Placed spawn tile at walkable ground floor position " .. r .. ", " .. c)
                             return r, c
                         end
                     end
@@ -247,6 +291,7 @@ function WorldManager.placeSpecialTile(maze, rows, cols, tileType, avoidR, avoid
                 break
             end
         until not maze[r][c] and  -- Ensure it's on a walkable area
+              MultiTierGenerator.getFloorLevel(r, c, elevatedZones or {}) == GameConfig.FLOOR_LEVELS.GROUND and  -- On ground floor
               not (avoidR and avoidC and r == avoidR and c == avoidC)
         
         print("DEBUG: Placed spawn tile at " .. r .. ", " .. c)
@@ -526,7 +571,7 @@ function WorldManager.placeItems(maze, rows, cols, count, itemType)
 end
 
 -- Place enemies on the maze
-function WorldManager.placeEnemies(maze, rows, cols, count)
+function WorldManager.placeEnemies(maze, rows, cols, count, elevatedZones)
     local enemies = {}
     for r = 1, rows do
         enemies[r] = {}
@@ -545,7 +590,11 @@ function WorldManager.placeEnemies(maze, rows, cols, count)
         local c = math.random(1, cols)
         
         if not maze[r][c] and not enemies[r][c] then
-            enemies[r][c] = DefaultEnemy.create(r, c)
+            -- Determine floor level for this position
+            local floorLevel = MultiTierGenerator.getFloorLevel(r, c, elevatedZones or {})
+            local floor = (floorLevel == GameConfig.FLOOR_LEVELS.ELEVATED) and GameConfig.FLOOR_LEVELS.ELEVATED or GameConfig.FLOOR_LEVELS.GROUND
+            
+            enemies[r][c] = DefaultEnemy.create(r, c, floor)
             placed = placed + 1
         end
     end
@@ -564,6 +613,15 @@ function WorldManager.generateGameWorld(preferredSpawnR, preferredSpawnC)
     -- Generate procedural maze
     local maze = MazeGenerator.generateProceduralMaze(rows, cols)
     MazeGenerator.addEdgeOpenings(maze, rows, cols)
+    
+    -- Generate elevated zones (multi-tier system)
+    print("DEBUG: Generating elevated zones...")
+    local elevatedZones = MultiTierGenerator.generateElevatedZones(maze, rows, cols)
+    print("DEBUG: Generated " .. #elevatedZones .. " elevated zones")
+    
+    -- Place ramps to connect zones
+    MultiTierGenerator.placeRamps(maze, elevatedZones, rows, cols)
+    print("DEBUG: Placed ramps for elevated zones")
     
     -- Debug: Count walkable spaces before placing special tiles
     local walkableCount = 0
@@ -611,11 +669,32 @@ function WorldManager.generateGameWorld(preferredSpawnR, preferredSpawnC)
         print("DEBUG: Walkable spaces after clearing preferred position: " .. walkableCountAfter)
     end
     
-    -- Place spawn and finale
-    local spawnR, spawnC = WorldManager.placeSpecialTile(maze, rows, cols, "spawn", nil, nil, preferredSpawnR, preferredSpawnC)
-    print("DEBUG: Spawn placed at " .. spawnR .. ", " .. spawnC)
-    local finaleR, finaleC = WorldManager.placeSpecialTile(maze, rows, cols, "finale", spawnR, spawnC)
-    print("DEBUG: Finale placement attempt returned: " .. (finaleR or "nil") .. ", " .. (finaleC or "nil"))
+    -- Place spawn and finale (must be on ground floor with valid movement space)
+    local spawnR, spawnC = WorldManager.placeSpecialTile(maze, rows, cols, "spawn", nil, nil, preferredSpawnR, preferredSpawnC, elevatedZones)
+    
+    -- Validate spawn has at least one adjacent ground floor walkable tile
+    local hasValidMovement = false
+    local directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}}
+    for _, dir in ipairs(directions) do
+        local adjR, adjC = spawnR + dir[1], spawnC + dir[2]
+        if Helpers.isValidPosition(adjR, adjC, rows, cols) and not maze[adjR][adjC] then
+            local adjFloor = MultiTierGenerator.getFloorLevel(adjR, adjC, elevatedZones)
+            if adjFloor == GameConfig.FLOOR_LEVELS.GROUND or adjFloor == "ramp" then
+                hasValidMovement = true
+                break
+            end
+        end
+    end
+    
+    -- If spawn is trapped, find a better position
+    if not hasValidMovement then
+        print("WARNING: Spawn is trapped! Finding better position...")
+        spawnR, spawnC = WorldManager.findUntrappedSpawnPosition(maze, rows, cols, elevatedZones)
+    end
+    
+    print("DEBUG: Spawn placed at " .. spawnR .. ", " .. spawnC .. " (ground floor, validated)")
+    local finaleR, finaleC = WorldManager.placeSpecialTile(maze, rows, cols, "finale", spawnR, spawnC, nil, nil, elevatedZones)
+    print("DEBUG: Finale placement attempt returned: " .. (finaleR or "nil") .. ", " .. (finaleC or "nil") .. " (ground floor)")
     
     -- Validate that finale tile was placed - if not, force placement
     if not finaleR or not finaleC then
@@ -693,12 +772,12 @@ function WorldManager.generateGameWorld(preferredSpawnR, preferredSpawnC)
     local blobEnemyCount = LevelConfig.getBlobEnemyCount(currentTheme, levelProgress)
     local lightningEnemyCount = LevelConfig.getLightningEnemyCount(currentTheme, levelProgress)
     
-    -- Place each enemy type
-    local enemies = WorldManager.placeEnemies(maze, rows, cols, defaultEnemyCount)
-    local poisonEnemies = WorldManager.placePoisonEnemies(maze, rows, cols, poisonEnemyCount)
-    local splashEnemies = WorldManager.placeSplashEnemies(maze, rows, cols, splashEnemyCount)
-    local blobEnemies = WorldManager.placeBlobEnemies(maze, rows, cols, blobEnemyCount)
-    local lightningEnemies = WorldManager.placeLightningEnemies(maze, rows, cols, lightningEnemyCount)
+    -- Place each enemy type (with floor level support)
+    local enemies = WorldManager.placeEnemies(maze, rows, cols, defaultEnemyCount, elevatedZones)
+    local poisonEnemies = WorldManager.placePoisonEnemies(maze, rows, cols, poisonEnemyCount, elevatedZones)
+    local splashEnemies = WorldManager.placeSplashEnemies(maze, rows, cols, splashEnemyCount, elevatedZones)
+    local blobEnemies = WorldManager.placeBlobEnemies(maze, rows, cols, blobEnemyCount, elevatedZones)
+    local lightningEnemies = WorldManager.placeLightningEnemies(maze, rows, cols, lightningEnemyCount, elevatedZones)
     
     -- Debug: Report enemy counts
     print("DEBUG: Enemy counts - Default: " .. (enemies and #enemies or 0) .. 
@@ -736,6 +815,7 @@ function WorldManager.generateGameWorld(preferredSpawnR, preferredSpawnC)
     
     return {
         maze = maze,
+        elevatedZones = elevatedZones,
         spawnR = spawnR,
         spawnC = spawnC,
         finaleR = finaleR,
@@ -849,7 +929,7 @@ function WorldManager.placeSplashEnemies(maze, rows, cols, count)
 end
 
 -- Place blob enemies on the maze
-function WorldManager.placeBlobEnemies(maze, rows, cols, count)
+function WorldManager.placeBlobEnemies(maze, rows, cols, count, elevatedZones)
     print("DEBUG: Attempting to place " .. count .. " blob enemies")
     local blobEnemies = {}
     local placed = 0
@@ -861,14 +941,29 @@ function WorldManager.placeBlobEnemies(maze, rows, cols, count)
         local r = math.random(1, rows - 1)  -- Leave room for 2x2 blob
         local c = math.random(1, cols - 1)  -- Leave room for 2x2 blob
         
-        -- Check if all 4 cells for the 2x2 blob are walkable
+        -- Check if all 4 cells for the 2x2 blob are walkable and on same floor
         local canPlace = true
+        local floor = nil
         for dr = 0, 1 do
             for dc = 0, 1 do
                 local checkR = r + dr
                 local checkC = c + dc
                 if not Helpers.isValidPosition(checkR, checkC, rows, cols) or maze[checkR][checkC] then
                     canPlace = false
+                    break
+                end
+                
+                -- Check floor consistency
+                local cellFloor = MultiTierGenerator.getFloorLevel(checkR, checkC, elevatedZones or {})
+                if cellFloor == "ramp" then
+                    canPlace = false  -- Blobs can't spawn on ramps
+                    break
+                end
+                
+                if floor == nil then
+                    floor = cellFloor
+                elseif floor ~= cellFloor then
+                    canPlace = false  -- All 4 cells must be on same floor
                     break
                 end
             end
@@ -886,7 +981,8 @@ function WorldManager.placeBlobEnemies(maze, rows, cols, count)
             end
             
             if not positionOccupied then
-                table.insert(blobEnemies, BlobEnemy.create(r, c))
+                local floorLevel = (floor == GameConfig.FLOOR_LEVELS.ELEVATED) and GameConfig.FLOOR_LEVELS.ELEVATED or GameConfig.FLOOR_LEVELS.GROUND
+                table.insert(blobEnemies, BlobEnemy.create(r, c, floorLevel))
                 placed = placed + 1
             end
         end
@@ -897,7 +993,7 @@ function WorldManager.placeBlobEnemies(maze, rows, cols, count)
         local r = 2 + placed
         local c = 2 + placed
         if r <= rows - 1 and c <= cols - 1 then
-            table.insert(blobEnemies, BlobEnemy.create(r, c))
+            table.insert(blobEnemies, BlobEnemy.create(r, c, GameConfig.FLOOR_LEVELS.GROUND))
             placed = placed + 1
         else
             break

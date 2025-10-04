@@ -3,10 +3,11 @@ local GameConfig = require("src.config.game_config")
 local Helpers = require("src.utils.helpers")
 
 -- Base enemy blueprint - extend this to create new enemy types
-function Enemy.create(r, c, enemyType)
+function Enemy.create(r, c, enemyType, floor)
     local baseEnemy = {
         r = r,
         c = c,
+        floor = floor or GameConfig.FLOOR_LEVELS.GROUND,  -- Floor level for multi-tier
         direction = math.random(1, 4),
         moveTimer = 0,
         moveInterval = GameConfig.ENEMY_MOVE_INTERVAL,
@@ -54,7 +55,8 @@ function Enemy.update(enemy, maze, rows, cols, dt)
     return false
 end
 
-function Enemy.move(enemy, maze, rows, cols)
+function Enemy.move(enemy, maze, rows, cols, elevatedZones)
+    local MultiTierGenerator = require("src.world.multi_tier_generator")
     local newR, newC = enemy.r, enemy.c
     
     -- Calculate new position based on direction
@@ -68,8 +70,28 @@ function Enemy.move(enemy, maze, rows, cols)
         newC = newC + 1
     end
     
+    -- Check floor compatibility
+    local currentFloor = enemy.floor or GameConfig.FLOOR_LEVELS.GROUND
+    local currentPosFloor = MultiTierGenerator.getFloorLevel(enemy.r, enemy.c, elevatedZones or {})
+    local targetFloorLevel = MultiTierGenerator.getFloorLevel(newR, newC, elevatedZones or {})
+    local targetFloor = currentFloor
+    
+    -- Handle ramp transitions
+    if targetFloorLevel == "ramp" then
+        targetFloor = (currentFloor == GameConfig.FLOOR_LEVELS.GROUND) and GameConfig.FLOOR_LEVELS.ELEVATED or GameConfig.FLOOR_LEVELS.GROUND
+    elseif targetFloorLevel == GameConfig.FLOOR_LEVELS.ELEVATED then
+        targetFloor = GameConfig.FLOOR_LEVELS.ELEVATED
+    elseif targetFloorLevel == GameConfig.FLOOR_LEVELS.GROUND then
+        targetFloor = GameConfig.FLOOR_LEVELS.GROUND
+    end
+    
+    -- Check floor compatibility (can move to ramp, same floor, or from ramp to any floor)
+    local canMove_floor = targetFloorLevel == "ramp" or 
+                          targetFloorLevel == currentFloor or
+                          currentPosFloor == "ramp"
+    
     -- Check if move is valid
-    if Helpers.isValidPosition(newR, newC, rows, cols) and
+    if canMove_floor and Helpers.isValidPosition(newR, newC, rows, cols) and
        (not maze[newR][newC] or maze[newR][newC] == "spawn" or maze[newR][newC] == "finale") then
         
         -- Allow enemy types to handle pre-move logic
@@ -87,6 +109,7 @@ function Enemy.move(enemy, maze, rows, cols)
         
         -- Update actual position immediately for collision detection
         enemy.r, enemy.c = newR, newC
+        enemy.floor = targetFloor  -- Update floor level
         
         -- Allow enemy types to handle post-move logic
         if enemy.onAfterMove then

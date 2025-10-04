@@ -3,8 +3,8 @@ local Enemy = require("src.entities.enemies.enemy")
 local GameConfig = require("src.config.game_config")
 local Helpers = require("src.utils.helpers")
 
-function BlobEnemy.create(r, c)
-    local enemy = Enemy.create(r, c, "blob")
+function BlobEnemy.create(r, c, floor)
+    local enemy = Enemy.create(r, c, "blob", floor)
     
     -- Blob-specific properties
     enemy.color = "black"
@@ -23,7 +23,7 @@ function BlobEnemy.onCreate(enemy)
     enemy.blobPulse = 0
 end
 
-function BlobEnemy.update(enemy, maze, rows, cols, dt)
+function BlobEnemy.update(enemy, maze, rows, cols, dt, elevatedZones)
     -- Update blob animation
     enemy.blobTimer = enemy.blobTimer + dt
     enemy.blobPulse = 0.8 + 0.2 * math.sin(enemy.blobTimer * 3)
@@ -44,7 +44,7 @@ function BlobEnemy.update(enemy, maze, rows, cols, dt)
     end
     
     -- Use custom blob movement logic that checks all 4 cells
-    return BlobEnemy.move(enemy, maze, rows, cols, dt)
+    return BlobEnemy.move(enemy, maze, rows, cols, dt, elevatedZones)
 end
 
 function BlobEnemy.checkPlayerCollision(enemy, player)
@@ -69,8 +69,9 @@ function BlobEnemy.handlePlayerCollision(enemy, player)
     return "none"
 end
 
-function BlobEnemy.move(enemy, maze, rows, cols, dt)
+function BlobEnemy.move(enemy, maze, rows, cols, dt, elevatedZones)
     -- Custom movement logic for 2x2 blob enemies
+    local MultiTierGenerator = require("src.world.multi_tier_generator")
     enemy.moveTimer = (enemy.moveTimer or 0) + dt
     
     if enemy.moveTimer >= enemy.moveInterval then
@@ -89,16 +90,34 @@ function BlobEnemy.move(enemy, maze, rows, cols, dt)
             newC = newC + 1
         end
         
-        -- Check if all 4 cells for the 2x2 blob are walkable
+        -- Check floor compatibility for all 4 cells of the 2x2 blob
+        local currentFloor = enemy.floor or GameConfig.FLOOR_LEVELS.GROUND
         local canMove = true
+        local targetFloor = currentFloor
+        
+        -- Check all 4 cells for walkability and floor compatibility
         for dr = 0, 1 do
             for dc = 0, 1 do
                 local checkR = newR + dr
                 local checkC = newC + dc
+                
+                -- Check basic validity
                 if not Helpers.isValidPosition(checkR, checkC, rows, cols) or
                    (maze[checkR][checkC] and maze[checkR][checkC] ~= "spawn" and maze[checkR][checkC] ~= "finale") then
                     canMove = false
                     break
+                end
+                
+                -- Check floor level
+                local cellFloor = MultiTierGenerator.getFloorLevel(checkR, checkC, elevatedZones or {})
+                if cellFloor ~= "ramp" and cellFloor ~= currentFloor then
+                    canMove = false
+                    break
+                end
+                
+                -- Update target floor if moving onto ramp
+                if cellFloor == "ramp" then
+                    targetFloor = (currentFloor == GameConfig.FLOOR_LEVELS.GROUND) and GameConfig.FLOOR_LEVELS.ELEVATED or GameConfig.FLOOR_LEVELS.GROUND
                 end
             end
             if not canMove then break end
@@ -114,6 +133,7 @@ function BlobEnemy.move(enemy, maze, rows, cols, dt)
             
             -- Update actual position immediately for collision detection
             enemy.r, enemy.c = newR, newC
+            enemy.floor = targetFloor  -- Update floor level
             
             -- Update blob cell positions
             BlobEnemy.onAfterMove(enemy, newR, newC)

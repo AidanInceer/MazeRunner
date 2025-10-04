@@ -6,8 +6,8 @@ local GameConfig = require("src.config.game_config")
 DefaultEnemy.__index = Enemy
 setmetatable(DefaultEnemy, Enemy)
 
-function DefaultEnemy.create(r, c)
-    local enemy = Enemy.create(r, c, "default")
+function DefaultEnemy.create(r, c, floor)
+    local enemy = Enemy.create(r, c, "default", floor)
     -- Attach methods to the enemy instance
     enemy.move = Enemy.move
     enemy.handlePlayerCollision = DefaultEnemy.handlePlayerCollision

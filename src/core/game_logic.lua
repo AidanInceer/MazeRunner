@@ -135,6 +135,7 @@ end
 function GameLogic.handlePlayerMovement(key)
     local gameObjects = GameState.getGameObjects()
     local playerData = GameState.getPlayerData()
+    local MultiTierGenerator = require("src.world.multi_tier_generator")
     local newR, newC = playerData.r, playerData.c
     
     -- Calculate new position based on input
@@ -153,6 +154,41 @@ function GameLogic.handlePlayerMovement(key)
     -- Check if move is valid (allow movement to walkable areas and special tiles)
     local canMove = Helpers.isValidPosition(newR, newC, GameConfig.MAZE_ROWS, GameConfig.MAZE_COLS) and
                    (not gameObjects.maze[newR][newC] or gameObjects.maze[newR][newC] == "spawn" or gameObjects.maze[newR][newC] == "finale")
+    
+    -- Check floor compatibility
+    local currentFloor = playerData.floor or GameConfig.FLOOR_LEVELS.GROUND
+    local targetFloorLevel = MultiTierGenerator.getFloorLevel(newR, newC, gameObjects.elevatedZones or {})
+    local targetFloor = currentFloor
+    
+    -- Handle ramp transitions (automatic floor change - ramps toggle floor level)
+    if targetFloorLevel == "ramp" then
+        -- Ramps toggle between ground and elevated
+        if currentFloor == GameConfig.FLOOR_LEVELS.GROUND then
+            targetFloor = GameConfig.FLOOR_LEVELS.ELEVATED
+            print("DEBUG: Player stepping on ramp, moving to elevated floor")
+        else
+            targetFloor = GameConfig.FLOOR_LEVELS.GROUND
+            print("DEBUG: Player stepping on ramp, moving to ground floor")
+        end
+    elseif targetFloorLevel == GameConfig.FLOOR_LEVELS.ELEVATED then
+        targetFloor = GameConfig.FLOOR_LEVELS.ELEVATED
+    elseif targetFloorLevel == GameConfig.FLOOR_LEVELS.GROUND then
+        targetFloor = GameConfig.FLOOR_LEVELS.GROUND
+    end
+    
+    -- Allow movement if:
+    -- 1. Target is a ramp (can always step on ramps)
+    -- 2. Target is on current floor
+    -- 3. Current position is a ramp (can step off ramp to either floor)
+    local currentPosFloorLevel = MultiTierGenerator.getFloorLevel(playerData.r, playerData.c, gameObjects.elevatedZones or {})
+    local canMove_floor = targetFloorLevel == "ramp" or 
+                          targetFloorLevel == currentFloor or
+                          currentPosFloorLevel == "ramp"
+    
+    if not canMove_floor then
+        print("DEBUG: Cannot move - wrong floor level (current: " .. currentFloor .. ", target: " .. targetFloorLevel .. ")")
+        return  -- Can't walk between floors without a ramp
+    end
     
     if canMove then
         -- Check for enemy collision at new position
@@ -306,8 +342,10 @@ function GameLogic.handlePlayerMovement(key)
             end
         end
         
-        GameState.setPlayerPosition(newR, newC)
+        GameState.setPlayerPosition(newR, newC, targetFloor)
         GameState.markVisited(newR, newC)
+        
+        print("DEBUG: Player moved to (" .. newR .. ", " .. newC .. ") on floor " .. targetFloor)
         
         -- Handle item collection
         GameLogic.handleItemCollection(newR, newC, gameObjects)
@@ -332,7 +370,7 @@ function GameLogic.handlePlayerMovement(key)
                 else
                     -- Level completed, generate next level
                     local worldData = WorldManager.generateGameWorld(newR, newC)
-                    GameState.setPlayerPosition(worldData.spawnR, worldData.spawnC)
+                    GameState.setPlayerPosition(worldData.spawnR, worldData.spawnC, GameConfig.FLOOR_LEVELS.GROUND)
                     GameState.setCurrentLevel(LevelManager.getCurrentLevel())
                     GameState.setGameObjects(worldData)
                     -- Reset score and immunity for new level
@@ -491,6 +529,7 @@ function GameLogic.updateEnemyType(enemies, enemyType, dt, gameObjects, playerDa
 end
 
 function GameLogic.moveEnemy(enemy, currentR, currentC, gameObjects, playerData)
+    local MultiTierGenerator = require("src.world.multi_tier_generator")
     local newR, newC = enemy.r, enemy.c
     
     -- Random direction
@@ -505,8 +544,28 @@ function GameLogic.moveEnemy(enemy, currentR, currentC, gameObjects, playerData)
         newC = newC + 1
     end
     
+    -- Check floor compatibility
+    local currentFloor = enemy.floor or GameConfig.FLOOR_LEVELS.GROUND
+    local currentPosFloor = MultiTierGenerator.getFloorLevel(enemy.r, enemy.c, gameObjects.elevatedZones or {})
+    local targetFloorLevel = MultiTierGenerator.getFloorLevel(newR, newC, gameObjects.elevatedZones or {})
+    local targetFloor = currentFloor
+    
+    -- Handle ramp transitions
+    if targetFloorLevel == "ramp" then
+        targetFloor = (currentFloor == GameConfig.FLOOR_LEVELS.GROUND) and GameConfig.FLOOR_LEVELS.ELEVATED or GameConfig.FLOOR_LEVELS.GROUND
+    elseif targetFloorLevel == GameConfig.FLOOR_LEVELS.ELEVATED then
+        targetFloor = GameConfig.FLOOR_LEVELS.ELEVATED
+    elseif targetFloorLevel == GameConfig.FLOOR_LEVELS.GROUND then
+        targetFloor = GameConfig.FLOOR_LEVELS.GROUND
+    end
+    
+    -- Check floor compatibility
+    local canMove_floor = targetFloorLevel == "ramp" or 
+                          targetFloorLevel == currentFloor or
+                          currentPosFloor == "ramp"
+    
     -- Check if move is valid
-    if Helpers.isValidPosition(newR, newC, GameConfig.MAZE_ROWS, GameConfig.MAZE_COLS) and
+    if canMove_floor and Helpers.isValidPosition(newR, newC, GameConfig.MAZE_ROWS, GameConfig.MAZE_COLS) and
        not gameObjects.maze[newR][newC] and
        not gameObjects.enemies[newR][newC] then
         
@@ -525,6 +584,7 @@ function GameLogic.moveEnemy(enemy, currentR, currentC, gameObjects, playerData)
         -- Update enemy position
         enemy.r = newR
         enemy.c = newC
+        enemy.floor = targetFloor  -- Update floor level
         
         -- Add to new position (only for default enemies in 2D array)
         if gameObjects.enemies[newR] then
@@ -748,7 +808,7 @@ function GameLogic.updateBlobEnemies(dt)
             table.remove(blobEnemies, i)
         else
             -- Update enemy movement
-            BlobEnemy.update(blobEnemy, gameObjects.maze, GameConfig.MAZE_ROWS, GameConfig.MAZE_COLS, dt)
+            BlobEnemy.update(blobEnemy, gameObjects.maze, GameConfig.MAZE_ROWS, GameConfig.MAZE_COLS, dt, gameObjects.elevatedZones)
             
             -- Check collision with player
             if BlobEnemy.checkPlayerCollision(blobEnemy, playerData) then
