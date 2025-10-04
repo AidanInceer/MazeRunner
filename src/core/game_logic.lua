@@ -307,6 +307,43 @@ function GameLogic.updateEnemies(dt)
     GameLogic.updateLightningEnemies(dt)
 end
 
+-- Handle continuous player movement
+function GameLogic.updatePlayerMovement(dt)
+    local gameState = GameState.getGameState()
+    if gameState ~= GameConfig.STATES.PLAYING then
+        return
+    end
+    
+    local heldKeys = GameState.getHeldKeys()
+    local moveTimer = GameState.getPlayerMoveTimer()
+    local moveInterval = GameState.getPlayerMoveInterval()
+    
+    -- Update movement timer
+    moveTimer = moveTimer + dt
+    GameState.setPlayerMoveTimer(moveTimer)
+    
+    -- Check if it's time to move and if any movement keys are held
+    if moveTimer >= moveInterval then
+        -- Find the first held movement key (prioritize in order: W, A, S, D)
+        local movementKey = nil
+        if heldKeys["w"] or heldKeys["up"] then
+            movementKey = "w"
+        elseif heldKeys["a"] or heldKeys["left"] then
+            movementKey = "a"
+        elseif heldKeys["s"] or heldKeys["down"] then
+            movementKey = "s"
+        elseif heldKeys["d"] or heldKeys["right"] then
+            movementKey = "d"
+        end
+        
+        -- If a movement key is held, attempt to move
+        if movementKey then
+            GameLogic.handlePlayerMovement(movementKey)
+            GameState.setPlayerMoveTimer(0)  -- Reset timer after successful move attempt
+        end
+    end
+end
+
 function GameLogic.updateEnemyType(enemies, enemyType, dt, gameObjects, playerData)
     if not enemies then return end
     

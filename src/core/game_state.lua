@@ -36,6 +36,10 @@ local state = {
     collectParticleTimer = 0,
     enemyMoveTimer = 0,
     spikeAnimationTime = 0,
+    -- Continuous movement system
+    playerMoveTimer = 0,
+    playerMoveInterval = 0.2,  -- 200ms between moves (5 moves per second)
+    heldKeys = {},  -- Track which keys are currently held down
     restartButton = {
         x = 20,
         y = 0,
@@ -332,6 +336,27 @@ end
 
 function GameState.setPoisonEnemies(poisonEnemies)
     state.poisonEnemies = poisonEnemies
+end
+
+-- Continuous movement system functions
+function GameState.setHeldKey(key, isHeld)
+    state.heldKeys[key] = isHeld
+end
+
+function GameState.getHeldKeys()
+    return state.heldKeys
+end
+
+function GameState.getPlayerMoveTimer()
+    return state.playerMoveTimer
+end
+
+function GameState.setPlayerMoveTimer(timer)
+    state.playerMoveTimer = timer
+end
+
+function GameState.getPlayerMoveInterval()
+    return state.playerMoveInterval
 end
 
 return GameState

@@ -39,6 +39,7 @@ function love.update(dt)
     GameLogic.updatePoisonEnemies(dt)
     GameLogic.updateSplashEnemies(dt)
     GameLogic.updatePoisonDamage(dt)
+    GameLogic.updatePlayerMovement(dt)  -- Handle continuous movement
     GameState.updateSpikeAnimation(dt)
 end
 
@@ -119,9 +120,29 @@ function love.keypressed(key)
     end
     
     if gameState == GameConfig.STATES.PLAYING then
-        GameLogic.handlePlayerMovement(key)
+        -- Handle movement keys for continuous movement
+        if key == "w" or key == "a" or key == "s" or key == "d" or 
+           key == "up" or key == "left" or key == "down" or key == "right" then
+            -- Mark key as held and trigger immediate movement
+            GameState.setHeldKey(key, true)
+            GameLogic.handlePlayerMovement(key)
+            GameState.setPlayerMoveTimer(0)  -- Reset timer for immediate response
+        end
     elseif gameState == GameConfig.STATES.INSUFFICIENT_SCORE then
         GameState.setGameState(GameConfig.STATES.PLAYING)
+    end
+end
+
+function love.keyreleased(key)
+    local gameState = GameState.getGameState()
+    
+    if gameState == GameConfig.STATES.PLAYING then
+        -- Handle movement keys for continuous movement
+        if key == "w" or key == "a" or key == "s" or key == "d" or 
+           key == "up" or key == "left" or key == "down" or key == "right" then
+            -- Mark key as released
+            GameState.setHeldKey(key, false)
+        end
     end
 end
 
