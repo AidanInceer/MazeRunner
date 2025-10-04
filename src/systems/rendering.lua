@@ -219,6 +219,46 @@ function Rendering.drawUI(playerData, screenHeight, restartButton, colors)
     love.graphics.setColor(1, 1, 1, 1)
 end
 
+function Rendering.drawLevelDisplay(screenWidth, screenHeight, levelNumber, levelName, colors)
+    local boxWidth, boxHeight = 250, 60
+    local boxX = screenWidth - boxWidth - 20
+    local boxY = 20
+    
+    -- Draw UI box with rounded corners effect (using multiple rectangles)
+    love.graphics.setColor(colors.ui_background)
+    love.graphics.rectangle("fill", boxX, boxY, boxWidth, boxHeight)
+    
+    -- Draw inner border for depth
+    love.graphics.setColor(colors.ui_text[1], colors.ui_text[2], colors.ui_text[3], 0.1)
+    love.graphics.rectangle("fill", boxX + 2, boxY + 2, boxWidth - 4, boxHeight - 4)
+    
+    -- Draw main border
+    love.graphics.setColor(colors.ui_text[1], colors.ui_text[2], colors.ui_text[3], 0.4)
+    love.graphics.setLineWidth(3)
+    love.graphics.rectangle("line", boxX, boxY, boxWidth, boxHeight)
+    
+    -- Draw inner border
+    love.graphics.setColor(colors.ui_text[1], colors.ui_text[2], colors.ui_text[3], 0.2)
+    love.graphics.setLineWidth(1)
+    love.graphics.rectangle("line", boxX + 3, boxY + 3, boxWidth - 6, boxHeight - 6)
+    
+    -- Draw level number with larger font
+    love.graphics.setColor(colors.ui_text[1], colors.ui_text[2], colors.ui_text[3], 0.9)
+    love.graphics.setFont(love.graphics.newFont(16))
+    love.graphics.print("LEVEL " .. levelNumber, boxX + 10, boxY + 8)
+    
+    -- Draw separator line
+    love.graphics.setColor(colors.ui_text[1], colors.ui_text[2], colors.ui_text[3], 0.3)
+    love.graphics.rectangle("fill", boxX + 10, boxY + 28, boxWidth - 20, 2)
+    
+    -- Draw level name with smaller font
+    love.graphics.setColor(colors.ui_text)
+    love.graphics.setFont(love.graphics.newFont(9))
+    love.graphics.printf(levelName, boxX + 10, boxY + 35, boxWidth - 20, "left")
+    
+    love.graphics.setColor(1, 1, 1, 1)
+end
+
 function Rendering.drawGameMessages(screenWidth, screenHeight, gameWon, gameOver)
     if gameWon then
         love.graphics.setColor(1, 1, 0, 1)  -- Yellow text
@@ -305,26 +345,43 @@ function Rendering._drawWallTile(tileType, x, y, cellSize, isHovered, colors)
             love.graphics.setColor(colors.spawn_border)
         end
     elseif tileType == "finale" then
-        -- Draw glow effect for finale
-        love.graphics.setColor(colors.finale_glow)
-        love.graphics.rectangle("fill", x - 4, y - 4, cellSize + 8, cellSize + 8)
+        -- Enhanced finale tile with pulsing effect (contained within tile bounds)
+        local time = love.timer.getTime()
+        local pulse = 0.8 + 0.2 * math.sin(time * 4)
+        
+        -- Draw outer glow effect for finale (within tile bounds)
+        love.graphics.setColor(colors.finale_glow[1], colors.finale_glow[2], colors.finale_glow[3], colors.finale_glow[4] * pulse)
+        love.graphics.rectangle("fill", x, y, cellSize, cellSize)
+        
+        -- Draw inner glow (within tile bounds)
+        love.graphics.setColor(1.0, 1.0, 1.0, 0.4 * pulse)
+        love.graphics.rectangle("fill", x + 2, y + 2, cellSize - 4, cellSize - 4)
         
         if isHovered then
-            love.graphics.setColor(colors.finale_hover)
+            love.graphics.setColor(colors.finale_hover[1], colors.finale_hover[2], colors.finale_hover[3], 1)
         else
-            love.graphics.setColor(colors.finale_border)
+            love.graphics.setColor(colors.finale_border[1], colors.finale_border[2], colors.finale_border[3], 1)
         end
         
         -- Draw the tile background
-        love.graphics.rectangle("fill", x + 2, y + 2, cellSize - 4, cellSize - 4)
+        love.graphics.rectangle("fill", x + 4, y + 4, cellSize - 8, cellSize - 8)
         
-        -- Draw down arrow
-        love.graphics.setColor(GameConfig.COLORS.TILE.FINALE_ARROW)
+        -- Draw enhanced down arrow
         local centerX = x + cellSize / 2
         local centerY = y + cellSize / 2
-        local arrowSize = cellSize * 0.3
+        local arrowSize = cellSize * 0.4
         
-        -- Draw down arrow using triangles
+        -- Draw arrow shadow/outline
+        love.graphics.setColor(0, 0, 0, 0.5)
+        local shadowPoints = {
+            centerX + 1, centerY - arrowSize/2 + 1,  -- Top point
+            centerX - arrowSize/2 + 1, centerY + arrowSize/2 + 1,  -- Bottom left
+            centerX + arrowSize/2 + 1, centerY + arrowSize/2 + 1   -- Bottom right
+        }
+        love.graphics.polygon("fill", shadowPoints)
+        
+        -- Draw main arrow
+        love.graphics.setColor(1, 1, 1, 1)
         local arrowPoints = {
             centerX, centerY - arrowSize/2,  -- Top point
             centerX - arrowSize/2, centerY + arrowSize/2,  -- Bottom left

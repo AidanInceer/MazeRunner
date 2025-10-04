@@ -34,7 +34,7 @@ function GameLogic.handleItemCollection(r, c, gameObjects)
     
     -- Check damage tiles
     if gameObjects.damageTiles[r][c] then
-        GameState.takeDamage(GameConfig.DAMAGE_TILE_DAMAGE)
+        GameState.takeDamage(GameConfig.TILE_DAMAGE.DAMAGE_TILE)
         GameState.setHitFlash(GameConfig.HIT_FLASH_DURATION)
     end
     
@@ -113,7 +113,7 @@ function GameLogic.handlePlayerMovement(key)
                 -- Allow movement after killing enemy
             else
                 -- Damage player and prevent movement
-                GameState.takeDamage(GameConfig.ENEMY_DAMAGE)
+                GameState.takeDamage(GameConfig.ENEMY_DAMAGE.DEFAULT)
                 GameState.setHitFlash(GameConfig.ENEMY_HIT_FLASH_DURATION)
                 return  -- Don't move the player
             end
@@ -151,7 +151,7 @@ function GameLogic.handlePlayerMovement(key)
                         -- Allow movement after killing enemy
                     else
                         -- Damage player and prevent movement
-                        GameState.takeDamage(GameConfig.ENEMY_DAMAGE)
+                        GameState.takeDamage(GameConfig.ENEMY_DAMAGE.SPLASH)
                         GameState.setHitFlash(GameConfig.ENEMY_HIT_FLASH_DURATION)
                         return  -- Don't move the player
                     end
@@ -263,7 +263,7 @@ function GameLogic.updateEnemies(dt)
                                 GameState.killEnemy()
                             else
                                 -- Damage player
-                                GameState.takeDamage(GameConfig.ENEMY_DAMAGE)
+                                GameState.takeDamage(GameConfig.ENEMY_DAMAGE.DEFAULT)
                                 GameState.setHitFlash(GameConfig.ENEMY_HIT_FLASH_DURATION)
                             end
                         end
@@ -416,7 +416,7 @@ function GameLogic.updateSplashEnemies(dt)
                     splashEnemy.r = -1  -- Mark for removal
                     GameState.killEnemy()
                 elseif result == "damaged" then
-                    GameState.takeDamage(GameConfig.ENEMY_DAMAGE)
+                    GameState.takeDamage(GameConfig.ENEMY_DAMAGE.SPLASH)
                     GameState.setHitFlash(GameConfig.ENEMY_HIT_FLASH_DURATION)
                 end
             end
@@ -440,7 +440,7 @@ function GameLogic.updateSplashEnemies(dt)
     -- Check player collision with splash tiles
     if splashTiles[playerData.r] and splashTiles[playerData.r][playerData.c] then
         -- Player is on a splash tile, damage them
-        GameState.takeDamage(GameConfig.SPLASH_TILE_DAMAGE)
+        GameState.takeDamage(GameConfig.TILE_DAMAGE.SPLASH_TILE)
         GameState.setHitFlash(GameConfig.ENEMY_HIT_FLASH_DURATION)
     end
     

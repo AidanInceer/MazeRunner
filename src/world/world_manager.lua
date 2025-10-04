@@ -2,6 +2,7 @@
 local WorldManager = {}
 local MazeGenerator = require("src.world.maze_generator")
 local LevelManager = require("src.core.level_manager")
+local LevelConfig = require("src.config.level_config")
 local GameConfig = require("src.config.game_config")
 local Helpers = require("src.utils.helpers")
 local DefaultEnemy = require("src.entities.enemies.default_enemy")
@@ -171,14 +172,17 @@ function WorldManager.generateGameWorld()
     local immunityBlobs = WorldManager.placeItems(maze, rows, cols, settings.immunityBlobCount, "immunity")
     
     -- Place enemies with level progression scaling
-    local enemyCount = LevelManager.getEnemyCount()
-    local enemies = WorldManager.placeEnemies(maze, rows, cols, enemyCount)
+    local currentTheme = LevelManager.getCurrentLevel()
+    local levelProgress = LevelManager.getLevelProgress()
     
-    -- Place poison enemies
-    local poisonEnemies = WorldManager.placePoisonEnemies(maze, rows, cols, GameConfig.POISON_ENEMY_COUNT)
+    -- Get enemy counts from level config
+    local defaultEnemyCount = LevelConfig.getDefaultEnemyCount(currentTheme, levelProgress)
+    local poisonEnemyCount = LevelConfig.getPoisonEnemyCount(currentTheme, levelProgress)
+    local splashEnemyCount = LevelConfig.getSplashEnemyCount(currentTheme, levelProgress)
     
-    -- Place splash enemies (1 per level)
-    local splashEnemyCount = LevelManager.getCurrentLevel()
+    -- Place each enemy type
+    local enemies = WorldManager.placeEnemies(maze, rows, cols, defaultEnemyCount)
+    local poisonEnemies = WorldManager.placePoisonEnemies(maze, rows, cols, poisonEnemyCount)
     local splashEnemies = WorldManager.placeSplashEnemies(maze, rows, cols, splashEnemyCount)
     
     return {

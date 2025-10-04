@@ -60,6 +60,9 @@ function love.draw()
         local uiElements = GameState.getUIElements()
         Rendering.drawUI(playerData, screenHeight, uiElements.restartButton, LevelManager.getCurrentColors())
         
+        -- Draw level display in top right
+        Rendering.drawLevelDisplay(screenWidth, screenHeight, LevelManager.getCurrentLevel(), LevelManager.getCurrentName(), LevelManager.getCurrentColors())
+        
         local gameState = GameState.getGameState()
         if gameState == GameConfig.STATES.INSUFFICIENT_SCORE then
             Rendering.drawInsufficientScoreMessage(screenWidth, screenHeight, GameConfig.REQUIRED_COLLECTIBLES)

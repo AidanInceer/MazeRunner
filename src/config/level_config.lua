@@ -6,7 +6,11 @@ LevelConfig.THEMES = {
     FOREST = 1,
     CAVE = 2,
     VOID = 3,
-    ABYSS = 4
+    ABYSS = 4,
+    VOLCANO = 5,
+    ARCTIC = 6,
+    DESERT = 7,
+    NEBULA = 8
 }
 
 -- Level names
@@ -14,7 +18,11 @@ LevelConfig.LEVEL_NAMES = {
     [LevelConfig.THEMES.FOREST] = "The Withered Forest",
     [LevelConfig.THEMES.CAVE] = "The Crystal Caves",
     [LevelConfig.THEMES.VOID] = "The Empty Void",
-    [LevelConfig.THEMES.ABYSS] = "The Infernal Abyss"
+    [LevelConfig.THEMES.ABYSS] = "The Infernal Abyss",
+    [LevelConfig.THEMES.VOLCANO] = "The Molten Caldera",
+    [LevelConfig.THEMES.ARCTIC] = "The Frozen Wasteland",
+    [LevelConfig.THEMES.DESERT] = "The Scorching Dunes",
+    [LevelConfig.THEMES.NEBULA] = "The Cosmic Storm"
 }
 
 -- Level descriptions
@@ -22,50 +30,130 @@ LevelConfig.LEVEL_DESCRIPTIONS = {
     [LevelConfig.THEMES.FOREST] = "Navigate through the twisted trees and avoid the corrupted wildlife.",
     [LevelConfig.THEMES.CAVE] = "Explore the crystalline depths and watch for falling rocks.",
     [LevelConfig.THEMES.VOID] = "Survive in the endless darkness where reality bends.",
-    [LevelConfig.THEMES.ABYSS] = "Descend into the fiery depths of hell itself."
+    [LevelConfig.THEMES.ABYSS] = "Descend into the fiery depths of hell itself.",
+    [LevelConfig.THEMES.VOLCANO] = "Traverse the molten landscape where lava flows and rocks explode.",
+    [LevelConfig.THEMES.ARCTIC] = "Brave the frozen tundra where ice shards and blizzards await.",
+    [LevelConfig.THEMES.DESERT] = "Endure the scorching sands where mirages and sandstorms deceive.",
+    [LevelConfig.THEMES.NEBULA] = "Navigate the cosmic storm where gravity and reality warp."
 }
 
 -- Import colors from separate config
 local Colors = require("src.config.colors")
 LevelConfig.COLORS = Colors.THEMES
 
--- Level progression settings
+-- Level progression settings with gentler difficulty scaling
 LevelConfig.LEVEL_SETTINGS = {
     [LevelConfig.THEMES.FOREST] = {
-        baseEnemyCount = 15,
-        enemySpeed = 0.6,
-        collectibleCount = 8,
-        damageTileCount = 15,
+        -- Enemy counts (Easy - Tutorial level)
+        defaultEnemyCount = 8,
+        poisonEnemyCount = 0,
+        splashEnemyCount = 0,
+        -- Enemy speed
+        enemySpeed = 0.5,
+        -- Item counts
+        collectibleCount = 6,
+        damageTileCount = 8,
         healthBlobCount = 2,
-        immunityBlobCount = 3,
-        requiredScore = 10
+        immunityBlobCount = 2,
+        requiredScore = 5
     },
     [LevelConfig.THEMES.CAVE] = {
-        baseEnemyCount = 25,
-        enemySpeed = 0.7,
-        collectibleCount = 10,
-        damageTileCount = 20,
-        healthBlobCount = 3,
+        -- Enemy counts (Easy+)
+        defaultEnemyCount = 9,
+        poisonEnemyCount = 1,
+        splashEnemyCount = 1,
+        -- Enemy speed
+        enemySpeed = 0.55,
+        -- Item counts
+        collectibleCount = 7,
+        damageTileCount = 10,
+        healthBlobCount = 2,
+        immunityBlobCount = 3,
+        requiredScore = 6
+    },
+    [LevelConfig.THEMES.VOID] = {
+        -- Enemy counts (Medium-)
+        defaultEnemyCount = 11,
+        poisonEnemyCount = 1,
+        splashEnemyCount = 2,
+        -- Enemy speed
+        enemySpeed = 0.6,
+        -- Item counts
+        collectibleCount = 8,
+        damageTileCount = 13,
+        healthBlobCount = 2,
+        immunityBlobCount = 4,
+        requiredScore = 8
+    },
+    [LevelConfig.THEMES.ABYSS] = {
+        -- Enemy counts (Medium)
+        defaultEnemyCount = 13,
+        poisonEnemyCount = 2,
+        splashEnemyCount = 2,
+        -- Enemy speed
+        enemySpeed = 0.65,
+        -- Item counts
+        collectibleCount = 9,
+        damageTileCount = 16,
+        healthBlobCount = 2,
         immunityBlobCount = 4,
         requiredScore = 10
     },
-    [LevelConfig.THEMES.VOID] = {
-        baseEnemyCount = 35,
-        enemySpeed = 0.8,
-        collectibleCount = 12,
-        damageTileCount = 25,
-        healthBlobCount = 3,
+    [LevelConfig.THEMES.VOLCANO] = {
+        -- Enemy counts (Medium+)
+        defaultEnemyCount = 16,
+        poisonEnemyCount = 2,
+        splashEnemyCount = 3,
+        -- Enemy speed
+        enemySpeed = 0.7,
+        -- Item counts
+        collectibleCount = 10,
+        damageTileCount = 20,
+        healthBlobCount = 2,
         immunityBlobCount = 5,
-        requiredScore = 10
+        requiredScore = 12
     },
-    [LevelConfig.THEMES.ABYSS] = {
-        baseEnemyCount = 40,
-        enemySpeed = 1.0,
-        collectibleCount = 15,
-        damageTileCount = 30,
-        healthBlobCount = 4,
+    [LevelConfig.THEMES.ARCTIC] = {
+        -- Enemy counts (Hard-)
+        defaultEnemyCount = 18,
+        poisonEnemyCount = 3,
+        splashEnemyCount = 4,
+        -- Enemy speed
+        enemySpeed = 0.75,
+        -- Item counts
+        collectibleCount = 11,
+        damageTileCount = 24,
+        healthBlobCount = 2,
+        immunityBlobCount = 5,
+        requiredScore = 14
+    },
+    [LevelConfig.THEMES.DESERT] = {
+        -- Enemy counts (Hard)
+        defaultEnemyCount = 20,
+        poisonEnemyCount = 3,
+        splashEnemyCount = 5,
+        -- Enemy speed
+        enemySpeed = 0.8,
+        -- Item counts
+        collectibleCount = 12,
+        damageTileCount = 28,
+        healthBlobCount = 2,
         immunityBlobCount = 6,
-        requiredScore = 10
+        requiredScore = 16
+    },
+    [LevelConfig.THEMES.NEBULA] = {
+        -- Enemy counts (Hard+)
+        defaultEnemyCount = 20,
+        poisonEnemyCount = 3,
+        splashEnemyCount = 6,
+        -- Enemy speed
+        enemySpeed = 0.85,
+        -- Item counts
+        collectibleCount = 13,
+        damageTileCount = 32,
+        healthBlobCount = 2,
+        immunityBlobCount = 7,
+        requiredScore = 18
     }
 }
 
@@ -74,7 +162,11 @@ function LevelConfig.getColors(theme)
         [LevelConfig.THEMES.FOREST] = "FOREST",
         [LevelConfig.THEMES.CAVE] = "CAVE", 
         [LevelConfig.THEMES.VOID] = "VOID",
-        [LevelConfig.THEMES.ABYSS] = "ABYSS"
+        [LevelConfig.THEMES.ABYSS] = "ABYSS",
+        [LevelConfig.THEMES.VOLCANO] = "VOLCANO",
+        [LevelConfig.THEMES.ARCTIC] = "ARCTIC",
+        [LevelConfig.THEMES.DESERT] = "DESERT",
+        [LevelConfig.THEMES.NEBULA] = "NEBULA"
     }
     local themeName = themeNames[theme] or "FOREST"
     return LevelConfig.COLORS[themeName] or LevelConfig.COLORS.FOREST
@@ -86,7 +178,22 @@ end
 
 function LevelConfig.getEnemyCount(theme, levelProgress)
     local settings = LevelConfig.getSettings(theme)
-    return settings.baseEnemyCount + (levelProgress - 1) * 2
+    return settings.defaultEnemyCount + (levelProgress - 1) * 2
+end
+
+function LevelConfig.getDefaultEnemyCount(theme, levelProgress)
+    local settings = LevelConfig.getSettings(theme)
+    return settings.defaultEnemyCount + (levelProgress - 1) * 2
+end
+
+function LevelConfig.getPoisonEnemyCount(theme, levelProgress)
+    local settings = LevelConfig.getSettings(theme)
+    return settings.poisonEnemyCount + math.floor((levelProgress - 1) / 2)
+end
+
+function LevelConfig.getSplashEnemyCount(theme, levelProgress)
+    local settings = LevelConfig.getSettings(theme)
+    return settings.splashEnemyCount + math.floor((levelProgress - 1) / 2)
 end
 
 function LevelConfig.getRequiredScore(theme)
@@ -108,14 +215,36 @@ function LevelConfig.getDescription(theme)
 end
 
 function LevelConfig.getNextTheme(currentTheme)
-    if currentTheme < LevelConfig.THEMES.ABYSS then
+    if currentTheme < LevelConfig.THEMES.NEBULA then
         return currentTheme + 1
     end
     return nil
 end
 
 function LevelConfig.isValidTheme(theme)
-    return theme >= LevelConfig.THEMES.FOREST and theme <= LevelConfig.THEMES.ABYSS
+    return theme >= LevelConfig.THEMES.FOREST and theme <= LevelConfig.THEMES.NEBULA
+end
+
+-- Helper function to create a new level easily
+function LevelConfig.createLevel(themeId, name, description, settings)
+    LevelConfig.THEMES[themeId] = themeId
+    LevelConfig.LEVEL_NAMES[themeId] = name
+    LevelConfig.LEVEL_DESCRIPTIONS[themeId] = description
+    LevelConfig.LEVEL_SETTINGS[themeId] = settings
+end
+
+-- Helper function to get total number of levels
+function LevelConfig.getTotalLevels()
+    return LevelConfig.THEMES.NEBULA
+end
+
+-- Helper function to get all level themes in order
+function LevelConfig.getAllThemes()
+    local themes = {}
+    for i = LevelConfig.THEMES.FOREST, LevelConfig.THEMES.NEBULA do
+        table.insert(themes, i)
+    end
+    return themes
 end
 
 return LevelConfig
