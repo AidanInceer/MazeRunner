@@ -4,6 +4,7 @@ local MazeGenerator = require("src.world.maze_generator")
 local LevelManager = require("src.core.level_manager")
 local GameConfig = require("src.config.game_config")
 local Helpers = require("src.utils.helpers")
+local DefaultEnemy = require("src.entities.enemies.default_enemy")
 local PoisonEnemy = require("src.entities.enemies.poison_enemy")
 
 -- Place a special tile (spawn or finale) on the maze edges
@@ -131,12 +132,7 @@ function WorldManager.placeEnemies(maze, rows, cols, count)
         local c = math.random(1, cols)
         
         if not maze[r][c] and not enemies[r][c] then
-            enemies[r][c] = {
-                r = r,
-                c = c,
-                direction = math.random(1, 4),
-                moveTimer = 0
-            }
+            enemies[r][c] = DefaultEnemy.create(r, c)
             placed = placed + 1
         end
     end

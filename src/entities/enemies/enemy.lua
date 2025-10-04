@@ -1,17 +1,22 @@
-
-
 local Enemy = {}
 local GameConfig = require("src.config.game_config")
 local Helpers = require("src.utils.helpers")
 
-function Enemy.create(r, c)
-    return {
+-- Base enemy blueprint - extend this to create new enemy types
+function Enemy.create(r, c, enemyType)
+    local baseEnemy = {
         r = r,
         c = c,
-        direction = math.random(1, 4),  -- Random initial direction
+        direction = math.random(1, 4),
         moveTimer = 0,
-        moveInterval = GameConfig.ENEMY_MOVE_INTERVAL
+        moveInterval = GameConfig.ENEMY_MOVE_INTERVAL,
+        type = enemyType or "default"
     }
+    
+    -- Allow enemy types to extend the base enemy
+    -- This will be called by the specific enemy type's onCreate method
+    
+    return baseEnemy
 end
 
 function Enemy.update(enemy, maze, rows, cols, dt)
@@ -42,7 +47,19 @@ function Enemy.move(enemy, maze, rows, cols)
     -- Check if move is valid
     if Helpers.isValidPosition(newR, newC, rows, cols) and
        (not maze[newR][newC] or maze[newR][newC] == "spawn" or maze[newR][newC] == "finale") then
+        
+        -- Allow enemy types to handle pre-move logic
+        if enemy.onBeforeMove then
+            enemy.onBeforeMove(enemy, newR, newC)
+        end
+        
         enemy.r, enemy.c = newR, newC
+        
+        -- Allow enemy types to handle post-move logic
+        if enemy.onAfterMove then
+            enemy.onAfterMove(enemy, newR, newC)
+        end
+        
         return true
     else
         -- Choose new random direction if blocked
@@ -68,11 +85,12 @@ function Enemy.getRenderData(enemy)
     return {
         r = enemy.r,
         c = enemy.c,
-        direction = enemy.direction
+        direction = enemy.direction,
+        type = enemy.type
     }
 end
 
-function Enemy.createMultiple(count, maze, rows, cols)
+function Enemy.createMultiple(count, maze, rows, cols, enemyType)
     local enemies = {}
     local placed = 0
     local attempts = 0
@@ -94,7 +112,7 @@ function Enemy.createMultiple(count, maze, rows, cols)
             end
             
             if not positionOccupied then
-                table.insert(enemies, Enemy.create(r, c))
+                table.insert(enemies, Enemy.create(r, c, enemyType))
                 placed = placed + 1
             end
         end
@@ -123,6 +141,19 @@ function Enemy.removeFromList(enemies, enemy)
         end
     end
     return false
+end
+
+-- Hook functions that can be overridden by enemy types
+function Enemy.onCreate(enemy, r, c)
+    -- Override in enemy type implementations
+end
+
+function Enemy.onBeforeMove(enemy, newR, newC)
+    -- Override in enemy type implementations
+end
+
+function Enemy.onAfterMove(enemy, newR, newC)
+    -- Override in enemy type implementations
 end
 
 return Enemy
