@@ -537,7 +537,10 @@ function Rendering._drawEnemies(enemies, cellSize, offsetX, offsetY)
         for c = 1, #enemies[r] do
             if enemies[r][c] then
                 local enemy = enemies[r][c]
-                local x, y = Helpers.getScreenPosition(cellSize, offsetX, offsetY, r, c)
+                -- Use animated position for smooth movement
+                local animR = enemy.animR or enemy.r
+                local animC = enemy.animC or enemy.c
+                local x, y = Helpers.getScreenPosition(cellSize, offsetX, offsetY, animR, animC)
                 local time = love.timer.getTime()
                 
                 -- Apply theme-based sparky shader for enemies
@@ -846,7 +849,10 @@ function Rendering._drawPoisonEnemies(poisonEnemies, cellSize, offsetX, offsetY)
     end
     
     for _, enemy in ipairs(poisonEnemies) do
-        local x, y = Helpers.getScreenPosition(cellSize, offsetX, offsetY, enemy.r, enemy.c)
+        -- Use animated position for smooth movement
+        local animR = enemy.animR or enemy.r
+        local animC = enemy.animC or enemy.c
+        local x, y = Helpers.getScreenPosition(cellSize, offsetX, offsetY, animR, animC)
         
         -- Draw poison enemy with pulsing effect
         local pulse = 0.8 + 0.2 * math.sin(love.timer.getTime() * 4)
@@ -879,7 +885,10 @@ function Rendering._drawSplashEnemies(splashEnemies, cellSize, offsetX, offsetY)
     end
     
     for _, enemy in ipairs(splashEnemies) do
-        local x, y = Helpers.getScreenPosition(cellSize, offsetX, offsetY, enemy.r, enemy.c)
+        -- Use animated position for smooth movement
+        local animR = enemy.animR or enemy.r
+        local animC = enemy.animC or enemy.c
+        local x, y = Helpers.getScreenPosition(cellSize, offsetX, offsetY, animR, animC)
         
         -- Get animation data
         local animData = SplashEnemy.getAnimationData(enemy)

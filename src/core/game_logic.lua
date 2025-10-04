@@ -210,71 +210,144 @@ function GameLogic.updateParticles(dt)
     end
 end
 
-function GameLogic.updateEnemies(dt)
+function GameLogic.updateEnemyAnimations(dt)
     local gameObjects = GameState.getGameObjects()
-    local playerData = GameState.getPlayerData()
-    local enemyMoveTimer = GameState.getEnemyMoveTimer()
-    local currentLevel = LevelManager.getCurrentLevel()
-    local enemyMoveInterval = LevelConfig.getEnemySpeed(currentLevel)
     
-    enemyMoveTimer = enemyMoveTimer + dt
-    
-    if enemyMoveTimer >= enemyMoveInterval then
-        enemyMoveTimer = 0
-        
-        -- Move all enemies
-        for r = 1, GameConfig.MAZE_ROWS do
-            for c = 1, GameConfig.MAZE_COLS do
-                if gameObjects.enemies[r][c] then
-                    local enemy = gameObjects.enemies[r][c]
-                    local newR, newC = enemy.r, enemy.c
-                    
-                    -- Random direction
-                    local direction = math.random(1, 4)
-                    if direction == GameConfig.DIRECTIONS.UP then
-                        newR = newR - 1
-                    elseif direction == GameConfig.DIRECTIONS.DOWN then
-                        newR = newR + 1
-                    elseif direction == GameConfig.DIRECTIONS.LEFT then
-                        newC = newC - 1
-                    elseif direction == GameConfig.DIRECTIONS.RIGHT then
-                        newC = newC + 1
-                    end
-                    
-                    -- Check if move is valid
-                    if Helpers.isValidPosition(newR, newC, GameConfig.MAZE_ROWS, GameConfig.MAZE_COLS) and
-                       not gameObjects.maze[newR][newC] and
-                       not gameObjects.enemies[newR][newC] then
-                        -- Remove from old position
-                        gameObjects.enemies[enemy.r][enemy.c] = false
-                        
-                        -- Update enemy position
-                        enemy.r = newR
-                        enemy.c = newC
-                        
-                        -- Add to new position
-                        gameObjects.enemies[newR][newC] = enemy
-                        
-                        -- Check collision with player
-                        if newR == playerData.r and newC == playerData.c then
-                            if playerData.immune and playerData.immunityKills > 0 then
-                                -- Kill enemy
-                                gameObjects.enemies[newR][newC] = false
-                                GameState.killEnemy()
-                            else
-                                -- Damage player
-                                GameState.takeDamage(GameConfig.ENEMY_DAMAGE.DEFAULT)
-                                GameState.setHitFlash(GameConfig.ENEMY_HIT_FLASH_DURATION)
-                            end
-                        end
+    -- Update animations for all enemies
+    for r = 1, GameConfig.MAZE_ROWS do
+        for c = 1, GameConfig.MAZE_COLS do
+            if gameObjects.enemies[r][c] then
+                local enemy = gameObjects.enemies[r][c]
+                
+                -- Update animation progress
+                if enemy.animProgress < 1.0 then
+                    local animSpeed = enemy.animSpeed or 2.5  -- Even slower, smoother animation
+                    enemy.animProgress = enemy.animProgress + dt * animSpeed
+                    if enemy.animProgress >= 1.0 then
+                        enemy.animProgress = 1.0
+                        enemy.animR = enemy.targetR
+                        enemy.animC = enemy.targetC
+                    else
+                        -- Interpolate between starting position and target position with smooth easing
+                        local easedProgress = GameLogic._easeInOutCubic(enemy.animProgress)
+                        enemy.animR = enemy.startR + (enemy.targetR - enemy.startR) * easedProgress
+                        enemy.animC = enemy.startC + (enemy.targetC - enemy.startC) * easedProgress
                     end
                 end
             end
         end
     end
+end
+
+function GameLogic.updateEnemies(dt)
+    local gameObjects = GameState.getGameObjects()
+    local playerData = GameState.getPlayerData()
     
-    -- Always update the timer
-    GameState.setEnemyMoveTimer(enemyMoveTimer)
+    -- Update enemy animations
+    GameLogic.updateEnemyAnimations(dt)
+    
+    -- Update each enemy type with their specific move timers
+    GameLogic.updateEnemyType(gameObjects.enemies, "default", dt, gameObjects, playerData)
+    GameLogic.updateEnemyType(gameObjects.poisonEnemies, "poison", dt, gameObjects, playerData)
+    GameLogic.updateEnemyType(gameObjects.splashEnemies, "splash", dt, gameObjects, playerData)
+end
+
+function GameLogic.updateEnemyType(enemies, enemyType, dt, gameObjects, playerData)
+    if not enemies then return end
+    
+    local moveInterval = GameConfig.ENEMY_SPEEDS[enemyType:upper()]
+    if not moveInterval then return end
+    
+    -- Handle 2D array for default enemies
+    if enemyType == "default" then
+        for r = 1, GameConfig.MAZE_ROWS do
+            for c = 1, GameConfig.MAZE_COLS do
+                if enemies[r][c] then
+                    local enemy = enemies[r][c]
+                    enemy.moveTimer = (enemy.moveTimer or 0) + dt
+                    
+                    if enemy.moveTimer >= moveInterval then
+                        enemy.moveTimer = 0
+                        GameLogic.moveEnemy(enemy, r, c, gameObjects, playerData)
+                    end
+                end
+            end
+        end
+    else
+        -- Handle 1D array for poison and splash enemies
+        for i, enemy in ipairs(enemies) do
+            enemy.moveTimer = (enemy.moveTimer or 0) + dt
+            
+            if enemy.moveTimer >= moveInterval then
+                enemy.moveTimer = 0
+                GameLogic.moveEnemy(enemy, enemy.r, enemy.c, gameObjects, playerData)
+            end
+        end
+    end
+end
+
+function GameLogic.moveEnemy(enemy, currentR, currentC, gameObjects, playerData)
+    local newR, newC = enemy.r, enemy.c
+    
+    -- Random direction
+    local direction = math.random(1, 4)
+    if direction == GameConfig.DIRECTIONS.UP then
+        newR = newR - 1
+    elseif direction == GameConfig.DIRECTIONS.DOWN then
+        newR = newR + 1
+    elseif direction == GameConfig.DIRECTIONS.LEFT then
+        newC = newC - 1
+    elseif direction == GameConfig.DIRECTIONS.RIGHT then
+        newC = newC + 1
+    end
+    
+    -- Check if move is valid
+    if Helpers.isValidPosition(newR, newC, GameConfig.MAZE_ROWS, GameConfig.MAZE_COLS) and
+       not gameObjects.maze[newR][newC] and
+       not gameObjects.enemies[newR][newC] then
+        
+        -- Set up smooth animation BEFORE updating position
+        enemy.targetR = newR
+        enemy.targetC = newC
+        enemy.animProgress = 0.0
+        enemy.startR = enemy.r
+        enemy.startC = enemy.c
+        
+        -- Remove from old position (only for default enemies in 2D array)
+        if gameObjects.enemies[currentR] and gameObjects.enemies[currentR][currentC] then
+            gameObjects.enemies[currentR][currentC] = false
+        end
+        
+        -- Update enemy position
+        enemy.r = newR
+        enemy.c = newC
+        
+        -- Add to new position (only for default enemies in 2D array)
+        if gameObjects.enemies[newR] then
+            gameObjects.enemies[newR][newC] = enemy
+        end
+        
+        -- Check collision with player
+        if newR == playerData.r and newC == playerData.c then
+            if playerData.immune and playerData.immunityKills > 0 then
+                -- Kill enemy
+                if gameObjects.enemies[newR] then
+                    gameObjects.enemies[newR][newC] = false
+                end
+                GameState.killEnemy()
+            else
+                -- Damage player based on enemy type
+                local damage = GameConfig.ENEMY_DAMAGE.DEFAULT
+                if enemy.type == "poison" then
+                    damage = GameConfig.ENEMY_DAMAGE.POISON
+                elseif enemy.type == "splash" then
+                    damage = GameConfig.ENEMY_DAMAGE.SPLASH
+                end
+                GameState.takeDamage(damage)
+                GameState.setHitFlash(GameConfig.ENEMY_HIT_FLASH_DURATION)
+            end
+        end
+    end
 end
 
 -- Update poison enemies and manage poison tiles
@@ -461,6 +534,15 @@ function GameLogic.updatePoisonDamage(dt)
         if poisonTimer > 0 and poisonTimer % 1.0 < dt then
             GameState.takeDamage(GameConfig.POISON_DAMAGE)
         end
+    end
+end
+
+-- Smooth easing function for animation
+function GameLogic._easeInOutCubic(t)
+    if t < 0.5 then
+        return 4 * t * t * t
+    else
+        return 1 - math.pow(-2 * t + 2, 3) / 2
     end
 end
 

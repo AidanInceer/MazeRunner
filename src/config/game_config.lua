@@ -19,7 +19,14 @@ GameConfig.IMMUNITY_BLOB_KILLS = 1
 -- Enemy counts are now managed in level_config.lua
 
 -- Enemy settings
-GameConfig.ENEMY_MOVE_INTERVAL = 0.6  -- seconds between moves
+GameConfig.ENEMY_MOVE_INTERVAL = 0.6  -- seconds between moves (legacy)
+
+-- Enemy type speeds (seconds between moves)
+GameConfig.ENEMY_SPEEDS = {
+    DEFAULT = 1.0,   -- Default enemies move every 1.0 seconds
+    POISON = 1.0,    -- Poison enemies move every 1.0 seconds (same as default)
+    SPLASH = 1.0     -- Splash enemies move every 1.0 seconds (same as default)
+}
 
 -- Enemy damage values
 GameConfig.ENEMY_DAMAGE = {
@@ -32,13 +39,13 @@ GameConfig.ENEMY_DAMAGE = {
 GameConfig.TILE_DAMAGE = {
     DAMAGE_TILE = 10,  -- Damage from regular damage tiles
     POISON_TILE = 0,   -- Poison tiles don't deal direct damage (they poison)
-    SPLASH_TILE = 50   -- Damage from splash enemy burning tiles
+    SPLASH_TILE = 33   -- Damage from splash enemy burning tiles
 }
 
 -- Legacy values for backward compatibility
 GameConfig.ENEMY_DAMAGE_LEGACY = 20
 GameConfig.DAMAGE_TILE_DAMAGE = 10
-GameConfig.SPLASH_TILE_DAMAGE = 50
+GameConfig.SPLASH_TILE_DAMAGE = 33
 
 -- Health restoration settings
 GameConfig.HEALTH_RESTORE = 30  -- Amount of health restored by health blobs

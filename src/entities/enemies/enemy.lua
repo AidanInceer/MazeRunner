@@ -10,7 +10,16 @@ function Enemy.create(r, c, enemyType)
         direction = math.random(1, 4),
         moveTimer = 0,
         moveInterval = GameConfig.ENEMY_MOVE_INTERVAL,
-        type = enemyType or "default"
+        type = enemyType or "default",
+        -- Animation properties for smooth movement
+        animR = r,  -- Current animated position (row)
+        animC = c,  -- Current animated position (col)
+        targetR = r,  -- Target position (row)
+        targetC = c,  -- Target position (col)
+        startR = r,  -- Starting position for animation (row)
+        startC = c,  -- Starting position for animation (col)
+        animProgress = 1.0,  -- Animation progress (0-1)
+        animSpeed = 2.5  -- Animation speed multiplier (smoother)
     }
     
     -- Allow enemy types to extend the base enemy
@@ -20,6 +29,21 @@ function Enemy.create(r, c, enemyType)
 end
 
 function Enemy.update(enemy, maze, rows, cols, dt)
+    -- Update animation progress
+    if enemy.animProgress < 1.0 then
+        enemy.animProgress = enemy.animProgress + dt * enemy.animSpeed
+        if enemy.animProgress >= 1.0 then
+            enemy.animProgress = 1.0
+            enemy.animR = enemy.targetR
+            enemy.animC = enemy.targetC
+        else
+            -- Interpolate between starting position and target position with smooth easing
+            local easedProgress = Enemy._easeInOutCubic(enemy.animProgress)
+            enemy.animR = enemy.startR + (enemy.targetR - enemy.startR) * easedProgress
+            enemy.animC = enemy.startC + (enemy.targetC - enemy.startC) * easedProgress
+        end
+    end
+    
     enemy.moveTimer = enemy.moveTimer + dt
     
     if enemy.moveTimer >= enemy.moveInterval then
@@ -53,6 +77,15 @@ function Enemy.move(enemy, maze, rows, cols)
             enemy.onBeforeMove(enemy, newR, newC)
         end
         
+        -- Set up animation for smooth movement
+        enemy.targetR = newR
+        enemy.targetC = newC
+        enemy.animProgress = 0.0
+        -- Store the starting position for animation
+        enemy.startR = enemy.r
+        enemy.startC = enemy.c
+        
+        -- Update actual position immediately for collision detection
         enemy.r, enemy.c = newR, newC
         
         -- Allow enemy types to handle post-move logic
@@ -154,6 +187,15 @@ end
 
 function Enemy.onAfterMove(enemy, newR, newC)
     -- Override in enemy type implementations
+end
+
+-- Smooth easing function for animation
+function Enemy._easeInOutCubic(t)
+    if t < 0.5 then
+        return 4 * t * t * t
+    else
+        return 1 - math.pow(-2 * t + 2, 3) / 2
+    end
 end
 
 return Enemy

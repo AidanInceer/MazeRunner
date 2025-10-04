@@ -48,8 +48,6 @@ LevelConfig.LEVEL_SETTINGS = {
         defaultEnemyCount = 8,
         poisonEnemyCount = 0,
         splashEnemyCount = 0,
-        -- Enemy speed
-        enemySpeed = 0.5,
         -- Item counts
         collectibleCount = 6,
         damageTileCount = 8,
@@ -62,8 +60,6 @@ LevelConfig.LEVEL_SETTINGS = {
         defaultEnemyCount = 9,
         poisonEnemyCount = 1,
         splashEnemyCount = 1,
-        -- Enemy speed
-        enemySpeed = 0.55,
         -- Item counts
         collectibleCount = 7,
         damageTileCount = 10,
@@ -76,8 +72,6 @@ LevelConfig.LEVEL_SETTINGS = {
         defaultEnemyCount = 11,
         poisonEnemyCount = 1,
         splashEnemyCount = 2,
-        -- Enemy speed
-        enemySpeed = 0.6,
         -- Item counts
         collectibleCount = 8,
         damageTileCount = 13,
@@ -90,8 +84,6 @@ LevelConfig.LEVEL_SETTINGS = {
         defaultEnemyCount = 13,
         poisonEnemyCount = 2,
         splashEnemyCount = 2,
-        -- Enemy speed
-        enemySpeed = 0.65,
         -- Item counts
         collectibleCount = 9,
         damageTileCount = 16,
@@ -104,8 +96,6 @@ LevelConfig.LEVEL_SETTINGS = {
         defaultEnemyCount = 16,
         poisonEnemyCount = 2,
         splashEnemyCount = 3,
-        -- Enemy speed
-        enemySpeed = 0.7,
         -- Item counts
         collectibleCount = 10,
         damageTileCount = 20,
@@ -118,8 +108,6 @@ LevelConfig.LEVEL_SETTINGS = {
         defaultEnemyCount = 18,
         poisonEnemyCount = 3,
         splashEnemyCount = 4,
-        -- Enemy speed
-        enemySpeed = 0.75,
         -- Item counts
         collectibleCount = 11,
         damageTileCount = 24,
@@ -132,8 +120,6 @@ LevelConfig.LEVEL_SETTINGS = {
         defaultEnemyCount = 20,
         poisonEnemyCount = 3,
         splashEnemyCount = 5,
-        -- Enemy speed
-        enemySpeed = 0.8,
         -- Item counts
         collectibleCount = 12,
         damageTileCount = 28,
@@ -146,8 +132,6 @@ LevelConfig.LEVEL_SETTINGS = {
         defaultEnemyCount = 20,
         poisonEnemyCount = 3,
         splashEnemyCount = 6,
-        -- Enemy speed
-        enemySpeed = 0.85,
         -- Item counts
         collectibleCount = 13,
         damageTileCount = 32,
@@ -199,11 +183,6 @@ end
 function LevelConfig.getRequiredScore(theme)
     local settings = LevelConfig.getSettings(theme)
     return settings.requiredScore
-end
-
-function LevelConfig.getEnemySpeed(theme)
-    local settings = LevelConfig.getSettings(theme)
-    return settings.enemySpeed
 end
 
 function LevelConfig.getName(theme)
