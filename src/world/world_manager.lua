@@ -8,6 +8,124 @@ local Helpers = require("src.utils.helpers")
 local DefaultEnemy = require("src.entities.enemies.default_enemy")
 local PoisonEnemy = require("src.entities.enemies.poison_enemy")
 local SplashEnemy = require("src.entities.enemies.splash_enemy")
+local BlobEnemy = require("src.entities.enemies.blob_enemy")
+local LightningEnemy = require("src.entities.enemies.lightning_enemy")
+
+-- Validate that finale tile exists and is properly placed
+function WorldManager.validateFinaleTile(maze, finaleR, finaleC, rows, cols)
+    if not finaleR or not finaleC then
+        error("CRITICAL ERROR: Finale tile coordinates are nil!")
+    end
+    
+    if not Helpers.isValidPosition(finaleR, finaleC, rows, cols) then
+        error("CRITICAL ERROR: Finale tile is outside maze bounds!")
+    end
+    
+    if maze[finaleR][finaleC] ~= "finale" then
+        print("WARNING: Finale tile at " .. finaleR .. ", " .. finaleC .. " is not marked as finale, fixing...")
+        maze[finaleR][finaleC] = "finale"
+    end
+    
+    print("Finale tile validated at position: " .. finaleR .. ", " .. finaleC)
+end
+
+-- Ensure minimum walkable spaces in the maze
+function WorldManager.ensureMinimumWalkableSpaces(maze, rows, cols, minSpaces)
+    local currentWalkable = 0
+    for r = 1, rows do
+        for c = 1, cols do
+            if not maze[r][c] then
+                currentWalkable = currentWalkable + 1
+            end
+        end
+    end
+    
+    local needed = minSpaces - currentWalkable
+    if needed > 0 then
+        print("DEBUG: Need to add " .. needed .. " more walkable spaces")
+        
+        local added = 0
+        local attempts = 0
+        local maxAttempts = 1000
+        
+        while added < needed and attempts < maxAttempts do
+            attempts = attempts + 1
+            local r = math.random(2, rows - 1)
+            local c = math.random(2, cols - 1)
+            
+            if maze[r][c] then  -- If it's a wall, make it walkable
+                maze[r][c] = false
+                added = added + 1
+            end
+        end
+        
+        print("DEBUG: Added " .. added .. " walkable spaces")
+    end
+end
+
+-- Debug function to check if finale tile exists in the maze
+function WorldManager.debugCheckFinaleTile(maze, rows, cols)
+    local finaleCount = 0
+    local finalePositions = {}
+    
+    for r = 1, rows do
+        for c = 1, cols do
+            if maze[r][c] == "finale" then
+                finaleCount = finaleCount + 1
+                table.insert(finalePositions, {r, c})
+            end
+        end
+    end
+    
+    print("DEBUG: Found " .. finaleCount .. " finale tile(s) in maze")
+    for i, pos in ipairs(finalePositions) do
+        print("  Finale tile " .. i .. " at: " .. pos[1] .. ", " .. pos[2])
+    end
+    
+    return finaleCount, finalePositions
+end
+
+-- Emergency finale tile creation - last resort method
+function WorldManager.emergencyCreateFinaleTile(maze, rows, cols, avoidR, avoidC)
+    print("EMERGENCY: Creating finale tile as last resort...")
+    
+    -- Try to find any position that's not the spawn point
+    for r = 1, rows do
+        for c = 1, cols do
+            if not (avoidR and avoidC and r == avoidR and c == avoidC) then
+                maze[r][c] = "finale"
+                print("EMERGENCY: Created finale tile at " .. r .. ", " .. c)
+                return r, c
+            end
+        end
+    end
+    
+    -- If even that fails, place it at a random position
+    local r, c = math.random(1, rows), math.random(1, cols)
+    maze[r][c] = "finale"
+    print("EMERGENCY: Created finale tile at random position " .. r .. ", " .. c)
+    return r, c
+end
+
+-- Force placement of finale tile - ensures it's always placed
+function WorldManager.forcePlaceFinaleTile(maze, rows, cols, avoidR, avoidC)
+    -- First try to find any walkable position
+    for r = 1, rows do
+        for c = 1, cols do
+            if not maze[r][c] and not (avoidR and avoidC and r == avoidR and c == avoidC) then
+                maze[r][c] = "finale"
+                print("Finale tile forced at position: " .. r .. ", " .. c)
+                return r, c
+            end
+        end
+    end
+    
+    -- If no walkable positions found, create one by removing a wall
+    local r, c = math.random(2, rows - 1), math.random(2, cols - 1)
+    maze[r][c] = "finale"
+    print("Finale tile forced by removing wall at position: " .. r .. ", " .. c)
+    return r, c
+end
 
 -- Place a special tile (spawn or finale) on the maze edges
 function WorldManager.placeSpecialTile(maze, rows, cols, tileType, avoidR, avoidC)
@@ -23,11 +141,19 @@ function WorldManager.placeSpecialTile(maze, rows, cols, tileType, avoidR, avoid
             end
         end
         
+        print("DEBUG: Found " .. #walkablePositions .. " walkable positions for finale tile (avoiding " .. (avoidR or "nil") .. ", " .. (avoidC or "nil") .. ")")
+        
         if #walkablePositions > 0 then
             -- Pick a random walkable position
             local pos = walkablePositions[math.random(1, #walkablePositions)]
             maze[pos[1]][pos[2]] = tileType
+            print("DEBUG: Placed finale tile at " .. pos[1] .. ", " .. pos[2])
             return pos[1], pos[2]
+        else
+            -- No walkable positions found - this should not happen with proper maze generation
+            -- Return nil to trigger the fallback mechanism
+            print("WARNING: No walkable positions found for finale tile placement")
+            return nil, nil
         end
     end
     
@@ -154,9 +280,57 @@ function WorldManager.generateGameWorld()
     local maze = MazeGenerator.generateProceduralMaze(rows, cols)
     MazeGenerator.addEdgeOpenings(maze, rows, cols)
     
+    -- Debug: Count walkable spaces before placing special tiles
+    local walkableCount = 0
+    for r = 1, rows do
+        for c = 1, cols do
+            if not maze[r][c] then
+                walkableCount = walkableCount + 1
+            end
+        end
+    end
+    print("DEBUG: Generated maze has " .. walkableCount .. " walkable spaces out of " .. (rows * cols) .. " total spaces")
+    
+    -- Ensure minimum walkable spaces for proper gameplay
+    local minWalkableSpaces = 50  -- Minimum 50 walkable spaces
+    if walkableCount < minWalkableSpaces then
+        print("WARNING: Maze has too few walkable spaces (" .. walkableCount .. "), adding more...")
+        WorldManager.ensureMinimumWalkableSpaces(maze, rows, cols, minWalkableSpaces)
+        
+        -- Recount walkable spaces
+        walkableCount = 0
+        for r = 1, rows do
+            for c = 1, cols do
+                if not maze[r][c] then
+                    walkableCount = walkableCount + 1
+                end
+            end
+        end
+        print("DEBUG: After ensuring minimum spaces, maze has " .. walkableCount .. " walkable spaces")
+    end
+    
     -- Place spawn and finale
     local spawnR, spawnC = WorldManager.placeSpecialTile(maze, rows, cols, "spawn")
     local finaleR, finaleC = WorldManager.placeSpecialTile(maze, rows, cols, "finale", spawnR, spawnC)
+    
+    -- Validate that finale tile was placed - if not, force placement
+    if not finaleR or not finaleC then
+        print("WARNING: Finale tile was not placed, forcing placement...")
+        finaleR, finaleC = WorldManager.forcePlaceFinaleTile(maze, rows, cols, spawnR, spawnC)
+    end
+    
+    -- Final validation - ensure finale tile exists and is accessible
+    WorldManager.validateFinaleTile(maze, finaleR, finaleC, rows, cols)
+    
+    -- Debug check to verify finale tile placement
+    local finaleCount, finalePositions = WorldManager.debugCheckFinaleTile(maze, rows, cols)
+    
+    -- CRITICAL SAFETY CHECK: If no finale tile exists, force create one
+    if finaleCount == 0 then
+        print("CRITICAL ERROR: No finale tile found after all attempts! Forcing creation...")
+        finaleR, finaleC = WorldManager.emergencyCreateFinaleTile(maze, rows, cols, spawnR, spawnC)
+        print("EMERGENCY: Created finale tile at " .. finaleR .. ", " .. finaleC)
+    end
     
     -- Ensure path exists from spawn to finale
     WorldManager.ensurePathToFinale(maze, spawnR, spawnC, finaleR, finaleC, rows, cols)
@@ -179,11 +353,22 @@ function WorldManager.generateGameWorld()
     local defaultEnemyCount = LevelConfig.getDefaultEnemyCount(currentTheme, levelProgress)
     local poisonEnemyCount = LevelConfig.getPoisonEnemyCount(currentTheme, levelProgress)
     local splashEnemyCount = LevelConfig.getSplashEnemyCount(currentTheme, levelProgress)
+    local blobEnemyCount = LevelConfig.getBlobEnemyCount(currentTheme, levelProgress)
+    local lightningEnemyCount = LevelConfig.getLightningEnemyCount(currentTheme, levelProgress)
     
     -- Place each enemy type
     local enemies = WorldManager.placeEnemies(maze, rows, cols, defaultEnemyCount)
     local poisonEnemies = WorldManager.placePoisonEnemies(maze, rows, cols, poisonEnemyCount)
     local splashEnemies = WorldManager.placeSplashEnemies(maze, rows, cols, splashEnemyCount)
+    local blobEnemies = WorldManager.placeBlobEnemies(maze, rows, cols, blobEnemyCount)
+    local lightningEnemies = WorldManager.placeLightningEnemies(maze, rows, cols, lightningEnemyCount)
+    
+    -- Debug: Report enemy counts
+    print("DEBUG: Enemy counts - Default: " .. (enemies and #enemies or 0) .. 
+          ", Poison: " .. (poisonEnemies and #poisonEnemies or 0) .. 
+          ", Splash: " .. (splashEnemies and #splashEnemies or 0) .. 
+          ", Blob: " .. (blobEnemies and #blobEnemies or 0) .. 
+          ", Lightning: " .. (lightningEnemies and #lightningEnemies or 0))
     
     return {
         maze = maze,
@@ -200,6 +385,8 @@ function WorldManager.generateGameWorld()
         poisonTiles = {},
         splashEnemies = splashEnemies,
         splashTiles = {},
+        blobEnemies = blobEnemies,
+        lightningEnemies = lightningEnemies,
         visited = visited
     }
 end
@@ -292,6 +479,113 @@ function WorldManager.placeSplashEnemies(maze, rows, cols, count)
     end
     
     return splashEnemies
+end
+
+-- Place blob enemies on the maze
+function WorldManager.placeBlobEnemies(maze, rows, cols, count)
+    print("DEBUG: Attempting to place " .. count .. " blob enemies")
+    local blobEnemies = {}
+    local placed = 0
+    local attempts = 0
+    local maxAttempts = 500
+    
+    while placed < count and attempts < maxAttempts do
+        attempts = attempts + 1
+        local r = math.random(1, rows - 1)  -- Leave room for 2x2 blob
+        local c = math.random(1, cols - 1)  -- Leave room for 2x2 blob
+        
+        -- Check if all 4 cells for the 2x2 blob are walkable
+        local canPlace = true
+        for dr = 0, 1 do
+            for dc = 0, 1 do
+                local checkR = r + dr
+                local checkC = c + dc
+                if not Helpers.isValidPosition(checkR, checkC, rows, cols) or maze[checkR][checkC] then
+                    canPlace = false
+                    break
+                end
+            end
+            if not canPlace then break end
+        end
+        
+        if canPlace then
+            -- Check if position is not occupied by another blob enemy
+            local positionOccupied = false
+            for _, enemy in ipairs(blobEnemies) do
+                if enemy.r == r and enemy.c == c then
+                    positionOccupied = true
+                    break
+                end
+            end
+            
+            if not positionOccupied then
+                table.insert(blobEnemies, BlobEnemy.create(r, c))
+                placed = placed + 1
+            end
+        end
+    end
+    
+    -- If we couldn't place enough enemies, place them at fixed positions
+    while placed < count do
+        local r = 2 + placed
+        local c = 2 + placed
+        if r <= rows - 1 and c <= cols - 1 then
+            table.insert(blobEnemies, BlobEnemy.create(r, c))
+            placed = placed + 1
+        else
+            break
+        end
+    end
+    
+    print("DEBUG: Successfully placed " .. #blobEnemies .. " blob enemies")
+    return blobEnemies
+end
+
+-- Place lightning enemies on the maze
+function WorldManager.placeLightningEnemies(maze, rows, cols, count)
+    print("DEBUG: Attempting to place " .. count .. " lightning enemies")
+    local lightningEnemies = {}
+    local placed = 0
+    local attempts = 0
+    local maxAttempts = 500
+    
+    while placed < count and attempts < maxAttempts do
+        attempts = attempts + 1
+        local r = math.random(1, rows)
+        local c = math.random(1, cols)
+        
+        -- Check if position is walkable (empty)
+        if not maze[r][c] then
+            -- Check if position is not occupied by another lightning enemy
+            local positionOccupied = false
+            for _, enemy in ipairs(lightningEnemies) do
+                if enemy.r == r and enemy.c == c then
+                    positionOccupied = true
+                    break
+                end
+            end
+            
+            if not positionOccupied then
+                table.insert(lightningEnemies, LightningEnemy.create(r, c))
+                placed = placed + 1
+            end
+        end
+    end
+    
+    -- If we couldn't place enough enemies, place them at fixed positions
+    while placed < count do
+        local r = 4 + placed
+        local c = 4 + placed
+        if r <= rows and c <= cols then
+            table.insert(lightningEnemies, LightningEnemy.create(r, c))
+            placed = placed + 1
+        else
+            break
+        end
+    end
+    
+    print("DEBUG: Successfully placed " .. #lightningEnemies .. " lightning enemies")
+    return lightningEnemies
 end
 
 return WorldManager

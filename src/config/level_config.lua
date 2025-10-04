@@ -45,10 +45,12 @@ LevelConfig.COLORS = Colors.THEMES
 LevelConfig.LEVEL_SETTINGS = {
     [LevelConfig.THEMES.FOREST] = {
         -- Enemy counts (Easy - Tutorial level)
-        defaultEnemyCount = 8,
+        defaultEnemyCount = 6,
         poisonEnemyCount = 0,
         splashEnemyCount = 0,
-        -- Item counts
+        lightningEnemyCount = 1,
+        blobEnemyCount = 1,
+        -- Item countsclea
         collectibleCount = 6,
         damageTileCount = 8,
         healthBlobCount = 2,
@@ -57,9 +59,11 @@ LevelConfig.LEVEL_SETTINGS = {
     },
     [LevelConfig.THEMES.CAVE] = {
         -- Enemy counts (Easy+)
-        defaultEnemyCount = 9,
+        defaultEnemyCount = 7,
         poisonEnemyCount = 1,
         splashEnemyCount = 1,
+        lightningEnemyCount = 0,
+        blobEnemyCount = 0,
         -- Item counts
         collectibleCount = 7,
         damageTileCount = 10,
@@ -72,6 +76,8 @@ LevelConfig.LEVEL_SETTINGS = {
         defaultEnemyCount = 11,
         poisonEnemyCount = 1,
         splashEnemyCount = 2,
+        lightningEnemyCount = 1,
+        blobEnemyCount = 0,
         -- Item counts
         collectibleCount = 8,
         damageTileCount = 13,
@@ -96,6 +102,8 @@ LevelConfig.LEVEL_SETTINGS = {
         defaultEnemyCount = 16,
         poisonEnemyCount = 2,
         splashEnemyCount = 3,
+        lightningEnemyCount = 1,
+        blobEnemyCount = 1,
         -- Item counts
         collectibleCount = 10,
         damageTileCount = 20,
@@ -108,6 +116,8 @@ LevelConfig.LEVEL_SETTINGS = {
         defaultEnemyCount = 18,
         poisonEnemyCount = 3,
         splashEnemyCount = 4,
+        lightningEnemyCount = 1,
+        blobEnemyCount = 1,
         -- Item counts
         collectibleCount = 11,
         damageTileCount = 24,
@@ -120,6 +130,8 @@ LevelConfig.LEVEL_SETTINGS = {
         defaultEnemyCount = 20,
         poisonEnemyCount = 3,
         splashEnemyCount = 5,
+        lightningEnemyCount = 1,
+        blobEnemyCount = 1,
         -- Item counts
         collectibleCount = 12,
         damageTileCount = 28,
@@ -132,6 +144,8 @@ LevelConfig.LEVEL_SETTINGS = {
         defaultEnemyCount = 20,
         poisonEnemyCount = 3,
         splashEnemyCount = 6,
+        lightningEnemyCount = 1,
+        blobEnemyCount = 1,
         -- Item counts
         collectibleCount = 13,
         damageTileCount = 32,
@@ -178,6 +192,16 @@ end
 function LevelConfig.getSplashEnemyCount(theme, levelProgress)
     local settings = LevelConfig.getSettings(theme)
     return settings.splashEnemyCount + math.floor((levelProgress - 1) / 2)
+end
+
+function LevelConfig.getLightningEnemyCount(theme, levelProgress)
+    local settings = LevelConfig.getSettings(theme)
+    return settings.lightningEnemyCount or 0
+end
+
+function LevelConfig.getBlobEnemyCount(theme, levelProgress)
+    local settings = LevelConfig.getSettings(theme)
+    return settings.blobEnemyCount or 0
 end
 
 function LevelConfig.getRequiredScore(theme)

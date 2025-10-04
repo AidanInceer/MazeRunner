@@ -20,6 +20,22 @@ function MazeGenerator.generateProceduralMaze(rows, cols)
     -- Ensure connectivity
     MazeGenerator._ensureConnectivity(maze, rows, cols)
     
+    -- Final safety check - ensure minimum walkable spaces
+    local walkableCount = 0
+    for r = 1, rows do
+        for c = 1, cols do
+            if not maze[r][c] then
+                walkableCount = walkableCount + 1
+            end
+        end
+    end
+    
+    local minWalkable = math.max(30, (rows * cols) * 0.15)  -- At least 15% walkable or 30 spaces
+    if walkableCount < minWalkable then
+        print("WARNING: Maze generator created too few walkable spaces (" .. walkableCount .. "), adding more...")
+        MazeGenerator._addMoreWalkableSpaces(maze, rows, cols, minWalkable - walkableCount)
+    end
+    
     return maze
 end
 
@@ -199,6 +215,25 @@ function MazeGenerator._floodFill(maze, startR, startC, rows, cols)
     end
     
     return reachableCount
+end
+
+function MazeGenerator._addMoreWalkableSpaces(maze, rows, cols, needed)
+    local added = 0
+    local attempts = 0
+    local maxAttempts = 500
+    
+    while added < needed and attempts < maxAttempts do
+        attempts = attempts + 1
+        local r = math.random(2, rows - 1)
+        local c = math.random(2, cols - 1)
+        
+        if maze[r][c] then  -- If it's a wall, make it walkable
+            maze[r][c] = false
+            added = added + 1
+        end
+    end
+    
+    print("DEBUG: Added " .. added .. " more walkable spaces to maze")
 end
 
 function MazeGenerator.addEdgeOpenings(maze, rows, cols)

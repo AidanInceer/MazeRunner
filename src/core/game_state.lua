@@ -26,6 +26,10 @@ local state = {
     enemies = {},
     poisonEnemies = {},
     poisonTiles = {},
+    splashEnemies = {},
+    splashTiles = {},
+    blobEnemies = {},
+    lightningEnemies = {},
     visited = {},
     hitFlashTimer = 0,
     collectParticles = {},
@@ -202,6 +206,8 @@ function GameState.getGameObjects()
         poisonTiles = state.poisonTiles,
         splashEnemies = state.splashEnemies,
         splashTiles = state.splashTiles,
+        blobEnemies = state.blobEnemies,
+        lightningEnemies = state.lightningEnemies,
         visited = state.visited
     }
 end
@@ -218,8 +224,9 @@ function GameState.setGameObjects(objects)
     state.poisonTiles = objects.poisonTiles
     state.splashEnemies = objects.splashEnemies
     state.splashTiles = objects.splashTiles
+    state.blobEnemies = objects.blobEnemies
+    state.lightningEnemies = objects.lightningEnemies
     state.visited = objects.visited or state.visited
-    
 end
 
 function GameState.getAnimationData()

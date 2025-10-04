@@ -8,6 +8,8 @@ local WorldManager = require("src.world.world_manager")
 local Helpers = require("src.utils.helpers")
 local PoisonEnemy = require("src.entities.enemies.poison_enemy")
 local SplashEnemy = require("src.entities.enemies.splash_enemy")
+local BlobEnemy = require("src.entities.enemies.blob_enemy")
+local LightningEnemy = require("src.entities.enemies.lightning_enemy")
 
 -- Handle item collection when player moves to a new position
 function GameLogic.handleItemCollection(r, c, gameObjects)
@@ -248,8 +250,12 @@ function GameLogic.updateEnemies(dt)
     
     -- Update each enemy type with their specific move timers
     GameLogic.updateEnemyType(gameObjects.enemies, "default", dt, gameObjects, playerData)
-    GameLogic.updateEnemyType(gameObjects.poisonEnemies, "poison", dt, gameObjects, playerData)
-    GameLogic.updateEnemyType(gameObjects.splashEnemies, "splash", dt, gameObjects, playerData)
+    
+    -- Update special enemy types with their specific behaviors
+    GameLogic.updatePoisonEnemies(dt)
+    GameLogic.updateSplashEnemies(dt)
+    GameLogic.updateBlobEnemies(dt)
+    GameLogic.updateLightningEnemies(dt)
 end
 
 function GameLogic.updateEnemyType(enemies, enemyType, dt, gameObjects, playerData)
@@ -520,6 +526,88 @@ function GameLogic.updateSplashEnemies(dt)
     -- Update the game objects with the modified arrays
     gameObjects.splashEnemies = splashEnemies
     gameObjects.splashTiles = splashTiles
+end
+
+-- Update blob enemies
+function GameLogic.updateBlobEnemies(dt)
+    local gameObjects = GameState.getGameObjects()
+    local playerData = GameState.getPlayerData()
+    
+    -- Ensure blob enemies array is initialized
+    if not gameObjects.blobEnemies then
+        gameObjects.blobEnemies = {}
+    end
+    
+    local blobEnemies = gameObjects.blobEnemies
+    
+    -- Update blob enemies
+    for i = #blobEnemies, 1, -1 do
+        local blobEnemy = blobEnemies[i]
+        
+        -- Remove dead enemies
+        if blobEnemy.r == -1 then
+            table.remove(blobEnemies, i)
+        else
+            -- Update enemy movement
+            BlobEnemy.update(blobEnemy, gameObjects.maze, GameConfig.MAZE_ROWS, GameConfig.MAZE_COLS, dt)
+            
+            -- Check collision with player
+            if BlobEnemy.checkPlayerCollision(blobEnemy, playerData) then
+                local result = BlobEnemy.handlePlayerCollision(blobEnemy, playerData)
+                if result == "killed" then
+                    blobEnemy.r = -1  -- Mark for removal
+                    GameState.killEnemy()
+                elseif result == "damaged" then
+                    GameState.damagePlayer(GameConfig.ENEMY_DAMAGE.BLOB)
+                    GameState.setHitFlash(GameConfig.ENEMY_HIT_FLASH_DURATION)
+                end
+            end
+        end
+    end
+    
+    -- Update the game objects with the modified arrays
+    gameObjects.blobEnemies = blobEnemies
+end
+
+-- Update lightning enemies
+function GameLogic.updateLightningEnemies(dt)
+    local gameObjects = GameState.getGameObjects()
+    local playerData = GameState.getPlayerData()
+    
+    -- Ensure lightning enemies array is initialized
+    if not gameObjects.lightningEnemies then
+        gameObjects.lightningEnemies = {}
+    end
+    
+    local lightningEnemies = gameObjects.lightningEnemies
+    
+    -- Update lightning enemies
+    for i = #lightningEnemies, 1, -1 do
+        local lightningEnemy = lightningEnemies[i]
+        
+        -- Remove dead enemies
+        if lightningEnemy.r == -1 then
+            table.remove(lightningEnemies, i)
+        else
+            -- Update enemy movement
+            LightningEnemy.update(lightningEnemy, gameObjects.maze, GameConfig.MAZE_ROWS, GameConfig.MAZE_COLS, dt)
+            
+            -- Check collision with player
+            if LightningEnemy.checkPlayerCollision(lightningEnemy, playerData) then
+                local result = LightningEnemy.handlePlayerCollision(lightningEnemy, playerData)
+                if result == "killed" then
+                    lightningEnemy.r = -1  -- Mark for removal
+                    GameState.killEnemy()
+                elseif result == "damaged" then
+                    GameState.damagePlayer(GameConfig.ENEMY_DAMAGE.LIGHTNING)
+                    GameState.setHitFlash(GameConfig.ENEMY_HIT_FLASH_DURATION)
+                end
+            end
+        end
+    end
+    
+    -- Update the game objects with the modified arrays
+    gameObjects.lightningEnemies = lightningEnemies
 end
 
 -- Update poison damage over time

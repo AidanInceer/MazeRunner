@@ -25,14 +25,18 @@ GameConfig.ENEMY_MOVE_INTERVAL = 0.6  -- seconds between moves (legacy)
 GameConfig.ENEMY_SPEEDS = {
     DEFAULT = 1.0,   -- Default enemies move every 1.0 seconds
     POISON = 1.0,    -- Poison enemies move every 1.0 seconds (same as default)
-    SPLASH = 1.0     -- Splash enemies move every 1.0 seconds (same as default)
+    SPLASH = 1.0,    -- Splash enemies move every 1.0 seconds (same as default)
+    LIGHTNING = 0.5, -- Lightning enemies move every 0.5 seconds (2x faster)
+    BLOB = 2.0       -- Blob enemies move every 2.0 seconds (half speed)
 }
 
 -- Enemy damage values
 GameConfig.ENEMY_DAMAGE = {
     DEFAULT = 20,      -- Damage from default enemy collision
     POISON = 0,        -- Poison enemies don't deal direct damage (they poison)
-    SPLASH = 20        -- Damage from splash enemy collision
+    SPLASH = 20,       -- Damage from splash enemy collision
+    LIGHTNING = 20,    -- Damage from lightning enemy collision
+    BLOB = 20          -- Damage from blob enemy collision
 }
 
 -- Tile damage values

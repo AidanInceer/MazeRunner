@@ -133,6 +133,12 @@ function Rendering.drawGame(screenWidth, screenHeight, maze, gameObjects, player
     -- Draw splash enemies
     Rendering._drawSplashEnemies(gameObjects.splashEnemies, cellSize, offsetX, offsetY)
     
+    -- Draw blob enemies
+    Rendering._drawBlobEnemies(gameObjects.blobEnemies, cellSize, offsetX, offsetY)
+    
+    -- Draw lightning enemies
+    Rendering._drawLightningEnemies(gameObjects.lightningEnemies, cellSize, offsetX, offsetY)
+    
     -- Draw poison enemies LAST - on top of everything
     Rendering._drawPoisonEnemies(gameObjects.poisonEnemies, cellSize, offsetX, offsetY)
 end
@@ -426,10 +432,24 @@ function Rendering._drawTileItems(x, y, cellSize, gameObjects, r, c)
     local centerX = x + cellSize / 2
     local centerY = y + cellSize / 2
     
-    -- Draw collectible
+    -- Draw collectible with enhanced visibility and animation
     if gameObjects.collectibles[r] and gameObjects.collectibles[r][c] then
-        love.graphics.setColor(GameConfig.COLORS.ITEMS.COLLECTIBLE)
-        love.graphics.circle("fill", centerX, centerY, cellSize / 6)
+        local time = love.timer.getTime()
+        local pulse = 0.6 + 0.4 * math.sin(time * 4 + r + c)
+        local glowPulse = 0.3 + 0.7 * math.sin(time * 6 + r * 2 + c * 2)
+        local float = math.sin(time * 3 + r + c) * 2
+        
+        -- Draw outer glow effect (golden)
+        love.graphics.setColor(1, 1, 0, 0.5 * glowPulse)
+        love.graphics.circle("fill", centerX, centerY + float, cellSize / 4)
+        
+        -- Draw main collectible with pulsing effect
+        love.graphics.setColor(GameConfig.COLORS.ITEMS.COLLECTIBLE[1], GameConfig.COLORS.ITEMS.COLLECTIBLE[2], GameConfig.COLORS.ITEMS.COLLECTIBLE[3], pulse)
+        love.graphics.circle("fill", centerX, centerY + float, cellSize / 6)
+        
+        -- Draw inner highlight
+        love.graphics.setColor(1, 1, 0.6, 0.9)
+        love.graphics.circle("fill", centerX - 1, centerY - 1 + float, cellSize / 10)
     end
     
     -- Draw damage tile with enhanced spike animation
@@ -490,24 +510,62 @@ function Rendering._drawTileItems(x, y, cellSize, gameObjects, r, c)
         end
     end
     
-    -- Draw health blob
+    -- Draw health blob with enhanced visibility and animation
     if gameObjects.healthBlobs[r] and gameObjects.healthBlobs[r][c] then
-        love.graphics.setColor(GameConfig.COLORS.ITEMS.HEALTH_BLOB)
-        love.graphics.circle("fill", centerX, centerY, cellSize / 5)
-        -- Add cross
-        love.graphics.setColor(GameConfig.COLORS.ITEMS.HEALTH_CROSS)
-        love.graphics.rectangle("fill", centerX - 1, centerY - 3, 2, 6)
-        love.graphics.rectangle("fill", centerX - 3, centerY - 1, 6, 2)
+        local time = love.timer.getTime()
+        local pulse = 0.7 + 0.3 * math.sin(time * 6 + r + c)
+        local glowPulse = 0.4 + 0.6 * math.sin(time * 8 + r * 2 + c * 2)
+        
+        -- Draw outer glow effect (larger and more prominent)
+        love.graphics.setColor(0, 1, 0, 0.5 * glowPulse)
+        love.graphics.circle("fill", centerX, centerY, cellSize / 2.5)
+        
+        -- Draw main health blob with pulsing effect (larger)
+        love.graphics.setColor(GameConfig.COLORS.ITEMS.HEALTH_BLOB[1], GameConfig.COLORS.ITEMS.HEALTH_BLOB[2], GameConfig.COLORS.ITEMS.HEALTH_BLOB[3], pulse)
+        love.graphics.circle("fill", centerX, centerY, cellSize / 4)
+        
+        -- Draw inner highlight (larger)
+        love.graphics.setColor(0.8, 1, 0.8, 0.8)
+        love.graphics.circle("fill", centerX - 2, centerY - 2, cellSize / 6)
+        
+        -- Add enhanced cross with glow (larger)
+        love.graphics.setColor(1, 1, 1, 0.9)
+        love.graphics.rectangle("fill", centerX - 1, centerY - 5, 2, 10)
+        love.graphics.rectangle("fill", centerX - 5, centerY - 1, 10, 2)
+        
+        -- Add cross outline for better visibility (larger)
+        love.graphics.setColor(0, 0.8, 0, 1)
+        love.graphics.rectangle("line", centerX - 1, centerY - 5, 2, 10)
+        love.graphics.rectangle("line", centerX - 5, centerY - 1, 10, 2)
     end
     
-    -- Draw immunity blob
+    -- Draw immunity blob with enhanced visibility and animation
     if gameObjects.immunityBlobs[r] and gameObjects.immunityBlobs[r][c] then
-        love.graphics.setColor(GameConfig.COLORS.ITEMS.IMMUNITY_BLOB)
-        love.graphics.circle("fill", centerX, centerY, cellSize / 5)
-        -- Add shield
-        love.graphics.setColor(GameConfig.COLORS.ITEMS.IMMUNITY_SHIELD)
-        love.graphics.rectangle("fill", centerX - 2, centerY - 4, 4, 6)
-        love.graphics.rectangle("fill", centerX - 1, centerY - 5, 2, 2)
+        local time = love.timer.getTime()
+        local pulse = 0.7 + 0.3 * math.sin(time * 5 + r + c)
+        local glowPulse = 0.4 + 0.6 * math.sin(time * 7 + r * 2 + c * 2)
+        
+        -- Draw outer glow effect (red - larger and more prominent)
+        love.graphics.setColor(1, 0, 0, 0.6 * glowPulse)
+        love.graphics.circle("fill", centerX, centerY, cellSize / 2.5)
+        
+        -- Draw main immunity blob with pulsing effect (larger)
+        love.graphics.setColor(GameConfig.COLORS.ITEMS.IMMUNITY_BLOB[1], GameConfig.COLORS.ITEMS.IMMUNITY_BLOB[2], GameConfig.COLORS.ITEMS.IMMUNITY_BLOB[3], pulse)
+        love.graphics.circle("fill", centerX, centerY, cellSize / 4)
+        
+        -- Draw inner highlight (larger)
+        love.graphics.setColor(1, 0.8, 0.8, 0.8)
+        love.graphics.circle("fill", centerX - 2, centerY - 2, cellSize / 6)
+        
+        -- Add enhanced shield with glow (larger)
+        love.graphics.setColor(1, 0, 0, 0.9)
+        love.graphics.rectangle("fill", centerX - 3, centerY - 5, 6, 8)
+        love.graphics.rectangle("fill", centerX - 2, centerY - 6, 4, 3)
+        
+        -- Add shield outline for better visibility (larger)
+        love.graphics.setColor(0.8, 0, 0, 1)
+        love.graphics.rectangle("line", centerX - 3, centerY - 5, 6, 8)
+        love.graphics.rectangle("line", centerX - 2, centerY - 6, 4, 3)
     end
 end
 
@@ -1058,6 +1116,104 @@ function Rendering._drawPoisonTiles(poisonTiles, cellSize, offsetX, offsetY)
                 end
             end
         end
+    end
+end
+
+-- Draw blob enemies
+function Rendering._drawBlobEnemies(blobEnemies, cellSize, offsetX, offsetY)
+    if not blobEnemies then
+        return
+    end
+    
+    print("DEBUG: Drawing " .. #blobEnemies .. " blob enemies")
+    
+    for _, enemy in ipairs(blobEnemies) do
+        -- Use animated position for smooth movement
+        local animR = enemy.animR or enemy.r
+        local animC = enemy.animC or enemy.c
+        local x, y = Helpers.getScreenPosition(cellSize, offsetX, offsetY, animR, animC)
+        
+        -- Get animation data
+        local animData = enemy.getAnimationData and enemy.getAnimationData(enemy) or {}
+        local pulse = animData.blobPulse or 1.0
+        
+        -- Draw 2x2 blob enemy with pulsing effect
+        local time = love.timer.getTime()
+        local glowPulse = 0.8 + 0.2 * math.sin(time * 3)
+        
+        -- Outer glow effect (dark gray)
+        love.graphics.setColor(0.2, 0.2, 0.2, 0.6 * glowPulse)
+        love.graphics.rectangle("fill", x - 2, y - 2, cellSize * 2 + 4, cellSize * 2 + 4)
+        
+        -- Main blob body (black)
+        love.graphics.setColor(0, 0, 0, pulse)
+        love.graphics.rectangle("fill", x, y, cellSize * 2, cellSize * 2)
+        
+        -- Inner highlight (dark gray)
+        love.graphics.setColor(0.3, 0.3, 0.3, 0.8)
+        love.graphics.rectangle("fill", x + 2, y + 2, cellSize * 2 - 4, cellSize * 2 - 4)
+        
+        -- Center core (slightly lighter black)
+        love.graphics.setColor(0.1, 0.1, 0.1, 1)
+        local centerX = x + cellSize
+        local centerY = y + cellSize
+        love.graphics.circle("fill", centerX, centerY, cellSize * 0.3)
+        
+        -- Border for visibility
+        love.graphics.setColor(0, 0, 0, 1)
+        love.graphics.setLineWidth(2)
+        love.graphics.rectangle("line", x, y, cellSize * 2, cellSize * 2)
+        love.graphics.setLineWidth(1)
+    end
+end
+
+-- Draw lightning enemies
+function Rendering._drawLightningEnemies(lightningEnemies, cellSize, offsetX, offsetY)
+    if not lightningEnemies then
+        return
+    end
+    
+    print("DEBUG: Drawing " .. #lightningEnemies .. " lightning enemies")
+    
+    for _, enemy in ipairs(lightningEnemies) do
+        -- Use animated position for smooth movement
+        local animR = enemy.animR or enemy.r
+        local animC = enemy.animC or enemy.c
+        local x, y = Helpers.getScreenPosition(cellSize, offsetX, offsetY, animR, animC)
+        
+        -- Draw lightning enemy with electric effect
+        local time = love.timer.getTime()
+        local electricPulse = 0.7 + 0.3 * math.sin(time * 8)
+        local sparkPulse = 0.5 + 0.5 * math.sin(time * 12)
+        
+        -- Outer electric glow (light blue)
+        love.graphics.setColor(0.3, 0.7, 1, 0.7 * electricPulse)
+        love.graphics.rectangle("fill", x - 3, y - 3, cellSize + 6, cellSize + 6)
+        
+        -- Main body (light blue)
+        love.graphics.setColor(0.2, 0.6, 1, electricPulse)
+        love.graphics.rectangle("fill", x, y, cellSize, cellSize)
+        
+        -- Electric spark center
+        love.graphics.setColor(1, 1, 1, sparkPulse)
+        local centerX = x + cellSize / 2
+        local centerY = y + cellSize / 2
+        love.graphics.circle("fill", centerX, centerY, cellSize * 0.2)
+        
+        -- Lightning bolts
+        love.graphics.setColor(1, 1, 0.8, 0.9)
+        love.graphics.setLineWidth(2)
+        -- Draw lightning bolt pattern
+        local boltOffset = math.sin(time * 6) * 2
+        love.graphics.line(centerX - 5, centerY - 5 + boltOffset, centerX + 5, centerY + 5 - boltOffset)
+        love.graphics.line(centerX - 5, centerY + 5 - boltOffset, centerX + 5, centerY - 5 + boltOffset)
+        love.graphics.setLineWidth(1)
+        
+        -- Border for visibility
+        love.graphics.setColor(0, 0, 0, 1)
+        love.graphics.setLineWidth(2)
+        love.graphics.rectangle("line", x, y, cellSize, cellSize)
+        love.graphics.setLineWidth(1)
     end
 end
 
