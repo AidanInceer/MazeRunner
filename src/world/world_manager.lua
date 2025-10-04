@@ -114,6 +114,39 @@ function WorldManager.emergencyCreateFinaleTile(maze, rows, cols, avoidR, avoidC
     return r, c
 end
 
+-- Absolute fallback finale tile creation - guaranteed to work
+function WorldManager.absoluteFallbackFinaleTile(maze, rows, cols, avoidR, avoidC)
+    print("ABSOLUTE FALLBACK: Creating finale tile with guaranteed success...")
+    
+    -- First, try to find a walkable position away from spawn
+    for r = 2, rows - 1 do
+        for c = 2, cols - 1 do
+            if not maze[r][c] and not (avoidR and avoidC and r == avoidR and c == avoidC) then
+                maze[r][c] = "finale"
+                print("ABSOLUTE FALLBACK: Created finale tile at walkable position " .. r .. ", " .. c)
+                return r, c
+            end
+        end
+    end
+    
+    -- If no walkable positions, create one by removing a wall
+    for r = 2, rows - 1 do
+        for c = 2, cols - 1 do
+            if maze[r][c] and not (avoidR and avoidC and r == avoidR and c == avoidC) then
+                maze[r][c] = "finale"
+                print("ABSOLUTE FALLBACK: Created finale tile by removing wall at " .. r .. ", " .. c)
+                return r, c
+            end
+        end
+    end
+    
+    -- Last resort: place it anywhere, even if it overlaps with spawn
+    local r, c = math.max(2, math.min(rows - 1, avoidR or 2)), math.max(2, math.min(cols - 1, avoidC or 2))
+    maze[r][c] = "finale"
+    print("ABSOLUTE FALLBACK: Created finale tile at forced position " .. r .. ", " .. c)
+    return r, c
+end
+
 -- Force placement of finale tile - ensures it's always placed
 function WorldManager.forcePlaceFinaleTile(maze, rows, cols, avoidR, avoidC)
     -- First try to find any walkable position
@@ -225,25 +258,163 @@ end
 
 -- Ensure there's a path from spawn to finale
 function WorldManager.ensurePathToFinale(maze, spawnR, spawnC, finaleR, finaleC, rows, cols)
-    if not MazeGenerator.findPath(maze, spawnR, spawnC, finaleR, finaleC, rows, cols) then
-        -- Create a direct path if none exists
-        local r, c = spawnR, spawnC
-        while r ~= finaleR or c ~= finaleC do
-            if r < finaleR then
-                r = r + 1
-            elseif r > finaleR then
-                r = r - 1
-            elseif c < finaleC then
-                c = c + 1
-            elseif c > finaleC then
-                c = c - 1
-            end
-            
-            if Helpers.isValidPosition(r, c, rows, cols) then
-                maze[r][c] = false
-            end
+    print("DEBUG: Ensuring path from spawn (" .. spawnR .. ", " .. spawnC .. ") to finale (" .. finaleR .. ", " .. finaleC .. ")")
+    
+    -- First, verify both positions are valid
+    if not Helpers.isValidPosition(spawnR, spawnC, rows, cols) then
+        print("ERROR: Spawn position is invalid!")
+        return false
+    end
+    
+    if not Helpers.isValidPosition(finaleR, finaleC, rows, cols) then
+        print("ERROR: Finale position is invalid!")
+        return false
+    end
+    
+    -- Check if path already exists
+    local pathExists = MazeGenerator.findPath(maze, spawnR, spawnC, finaleR, finaleC, rows, cols)
+    print("DEBUG: Path exists check result: " .. tostring(pathExists))
+    
+    if not pathExists then
+        print("WARNING: No path found from spawn to finale! Creating guaranteed path...")
+        
+        -- Create a guaranteed path using multiple strategies
+        local pathCreated = WorldManager.createGuaranteedPath(maze, spawnR, spawnC, finaleR, finaleC, rows, cols)
+        
+        if not pathCreated then
+            print("ERROR: Failed to create path! Using emergency path creation...")
+            WorldManager.emergencyCreatePath(maze, spawnR, spawnC, finaleR, finaleC, rows, cols)
+        end
+        
+        -- Verify path was created
+        local finalPathCheck = MazeGenerator.findPath(maze, spawnR, spawnC, finaleR, finaleC, rows, cols)
+        print("DEBUG: Final path verification: " .. tostring(finalPathCheck))
+        
+        if not finalPathCheck then
+            print("CRITICAL ERROR: Path creation failed completely!")
+            return false
         end
     end
+    
+    print("DEBUG: Path from spawn to finale is guaranteed to exist")
+    return true
+end
+
+-- Create a guaranteed path from spawn to finale
+function WorldManager.createGuaranteedPath(maze, spawnR, spawnC, finaleR, finaleC, rows, cols)
+    print("DEBUG: Creating guaranteed path from (" .. spawnR .. ", " .. spawnC .. ") to (" .. finaleR .. ", " .. finaleC .. ")")
+    
+    -- Strategy 1: Create a direct L-shaped path
+    local r, c = spawnR, spawnC
+    local pathCreated = true
+    
+    -- Move horizontally first, then vertically
+    while c ~= finaleC do
+        if c < finaleC then
+            c = c + 1
+        else
+            c = c - 1
+        end
+        
+        if Helpers.isValidPosition(r, c, rows, cols) then
+            maze[r][c] = false
+        else
+            pathCreated = false
+            break
+        end
+    end
+    
+    -- Move vertically
+    while r ~= finaleR and pathCreated do
+        if r < finaleR then
+            r = r + 1
+        else
+            r = r - 1
+        end
+        
+        if Helpers.isValidPosition(r, c, rows, cols) then
+            maze[r][c] = false
+        else
+            pathCreated = false
+            break
+        end
+    end
+    
+    if pathCreated then
+        print("DEBUG: Direct L-shaped path created successfully")
+        return true
+    end
+    
+    -- Strategy 2: Create a diagonal path with wall removal
+    print("DEBUG: L-shaped path failed, trying diagonal path with wall removal...")
+    r, c = spawnR, spawnC
+    pathCreated = true
+    
+    while (r ~= finaleR or c ~= finaleC) and pathCreated do
+        -- Move towards finale
+        if r < finaleR then
+            r = r + 1
+        elseif r > finaleR then
+            r = r - 1
+        end
+        
+        if c < finaleC then
+            c = c + 1
+        elseif c > finaleC then
+            c = c - 1
+        end
+        
+        if Helpers.isValidPosition(r, c, rows, cols) then
+            maze[r][c] = false
+        else
+            pathCreated = false
+            break
+        end
+    end
+    
+    if pathCreated then
+        print("DEBUG: Diagonal path created successfully")
+        return true
+    end
+    
+    print("DEBUG: Both path strategies failed")
+    return false
+end
+
+-- Emergency path creation - guaranteed to work
+function WorldManager.emergencyCreatePath(maze, spawnR, spawnC, finaleR, finaleC, rows, cols)
+    print("EMERGENCY: Creating path with guaranteed success...")
+    
+    -- Create a simple straight line path, removing any walls in the way
+    local r, c = spawnR, spawnC
+    
+    -- Move row by row
+    while r ~= finaleR do
+        if r < finaleR then
+            r = r + 1
+        else
+            r = r - 1
+        end
+        
+        if Helpers.isValidPosition(r, c, rows, cols) then
+            maze[r][c] = false
+        end
+    end
+    
+    -- Move column by column
+    while c ~= finaleC do
+        if c < finaleC then
+            c = c + 1
+        else
+            c = c - 1
+        end
+        
+        if Helpers.isValidPosition(r, c, rows, cols) then
+            maze[r][c] = false
+        end
+    end
+    
+    print("EMERGENCY: Path created by removing all walls in direct line")
 end
 
 -- Find a random walkable position on the maze
@@ -390,7 +561,7 @@ function WorldManager.generateGameWorld(preferredSpawnR, preferredSpawnC)
     print("DEBUG: Generated maze has " .. walkableCount .. " walkable spaces out of " .. (rows * cols) .. " total spaces")
     
     -- Ensure minimum walkable spaces for proper gameplay
-    local minWalkableSpaces = 150  -- Minimum 200 walkable spaces for 30x30 map (reduced walls by 25%)
+    local minWalkableSpaces = 200  -- Minimum 200 walkable spaces for 30x30 map (increased for finale tile reliability)
     if walkableCount < minWalkableSpaces then
         print("WARNING: Maze has too few walkable spaces (" .. walkableCount .. "), adding more...")
         WorldManager.ensureMinimumWalkableSpaces(maze, rows, cols, minWalkableSpaces)
@@ -454,11 +625,33 @@ function WorldManager.generateGameWorld(preferredSpawnR, preferredSpawnC)
         -- Verify the emergency creation worked
         local finalCount, _ = WorldManager.debugCheckFinaleTile(maze, rows, cols)
         print("DEBUG: Finale tile count after emergency creation: " .. finalCount)
+        
+        -- If still no finale tile, this is a critical failure
+        if finalCount == 0 then
+            print("CRITICAL FAILURE: Emergency finale creation failed! Using absolute fallback...")
+            finaleR, finaleC = WorldManager.absoluteFallbackFinaleTile(maze, rows, cols, spawnR, spawnC)
+        end
+    end
+    
+    -- FINAL VERIFICATION: Ensure we have a valid finale tile before proceeding
+    if not finaleR or not finaleC then
+        print("FINAL VERIFICATION FAILED: No finale tile coordinates! Using absolute fallback...")
+        finaleR, finaleC = WorldManager.absoluteFallbackFinaleTile(maze, rows, cols, spawnR, spawnC)
+    end
+    
+    -- Verify the finale tile is actually marked correctly in the maze
+    if not maze[finaleR] or not maze[finaleR][finaleC] or maze[finaleR][finaleC] ~= "finale" then
+        print("FINAL VERIFICATION: Finale tile not properly marked in maze! Fixing...")
+        maze[finaleR][finaleC] = "finale"
     end
     
     
     -- Ensure path exists from spawn to finale
-    WorldManager.ensurePathToFinale(maze, spawnR, spawnC, finaleR, finaleC, rows, cols)
+    local pathEnsured = WorldManager.ensurePathToFinale(maze, spawnR, spawnC, finaleR, finaleC, rows, cols)
+    if not pathEnsured then
+        print("CRITICAL ERROR: Failed to ensure path from spawn to finale!")
+        -- This should never happen with our enhanced system, but if it does, we have a problem
+    end
     
     -- Initialize visited tracking
     local visited = Helpers.create2DArray(rows, cols, false)
@@ -496,6 +689,33 @@ function WorldManager.generateGameWorld(preferredSpawnR, preferredSpawnC)
           ", Splash: " .. (splashEnemies and #splashEnemies or 0) .. 
           ", Blob: " .. (blobEnemies and #blobEnemies or 0) .. 
           ", Lightning: " .. (lightningEnemies and #lightningEnemies or 0))
+    
+    -- FINAL ABSOLUTE VERIFICATION: Ensure finale tile exists before returning
+    local finalVerificationCount, _ = WorldManager.debugCheckFinaleTile(maze, rows, cols)
+    if finalVerificationCount == 0 then
+        print("FINAL ABSOLUTE VERIFICATION FAILED: No finale tile found! Creating one last finale tile...")
+        finaleR, finaleC = WorldManager.absoluteFallbackFinaleTile(maze, rows, cols, spawnR, spawnC)
+        print("FINAL ABSOLUTE VERIFICATION: Created finale tile at " .. finaleR .. ", " .. finaleC)
+    end
+    
+    -- FINAL PATH VERIFICATION: Ensure path from spawn to finale is accessible
+    local finalPathVerification = MazeGenerator.findPath(maze, spawnR, spawnC, finaleR, finaleC, rows, cols)
+    if not finalPathVerification then
+        print("FINAL PATH VERIFICATION FAILED: No path from spawn to finale! Creating emergency path...")
+        WorldManager.emergencyCreatePath(maze, spawnR, spawnC, finaleR, finaleC, rows, cols)
+        
+        -- Verify emergency path creation worked
+        local emergencyPathCheck = MazeGenerator.findPath(maze, spawnR, spawnC, finaleR, finaleC, rows, cols)
+        if not emergencyPathCheck then
+            print("CRITICAL FAILURE: Emergency path creation failed!")
+        else
+            print("FINAL PATH VERIFICATION: Emergency path created successfully")
+        end
+    else
+        print("FINAL PATH VERIFICATION: Path from spawn to finale is accessible")
+    end
+    
+    print("FINAL VERIFICATION: Level generation complete with finale tile at " .. finaleR .. ", " .. finaleC .. " and accessible path")
     
     return {
         maze = maze,

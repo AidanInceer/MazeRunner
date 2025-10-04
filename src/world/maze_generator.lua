@@ -30,7 +30,7 @@ function MazeGenerator.generateProceduralMaze(rows, cols)
         end
     end
     
-    local minWalkable = math.max(150, (rows * cols) * 0.30)  -- At least 30% walkable or 150 spaces (reduced walls by 25%)
+    local minWalkable = math.max(200, (rows * cols) * 0.35)  -- At least 35% walkable or 200 spaces (increased for finale tile reliability)
     if walkableCount < minWalkable then
         print("WARNING: Maze generator created too few walkable spaces (" .. walkableCount .. "), adding more...")
         MazeGenerator._addMoreWalkableSpaces(maze, rows, cols, minWalkable - walkableCount)
