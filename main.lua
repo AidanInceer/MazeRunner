@@ -87,7 +87,9 @@ function love.draw()
         
         local gameState = GameState.getGameState()
         if gameState == GameConfig.STATES.INSUFFICIENT_SCORE then
-            Rendering.drawInsufficientScoreMessage(screenWidth, screenHeight, GameConfig.REQUIRED_COLLECTIBLES)
+            local currentTheme = LevelManager.getCurrentLevel()
+            local requiredScore = LevelConfig.getRequiredScore(currentTheme)
+            Rendering.drawInsufficientScoreMessage(screenWidth, screenHeight, requiredScore)
         else
             Rendering.drawGameMessages(screenWidth, screenHeight, 
                 GameState.getAllState().gameWon, GameState.getAllState().gameOver)

@@ -1,6 +1,8 @@
 -- Rendering system for maze, UI, particles, and effects
 local Rendering = {}
 local GameConfig = require("src.config.game_config")
+local LevelConfig = require("src.config.level_config")
+local LevelManager = require("src.core.level_manager")
 local Helpers = require("src.utils.helpers")
 local GameState = require("src.core.game_state")
 local SplashEnemy = require("src.entities.enemies.splash_enemy")
@@ -74,7 +76,7 @@ function Rendering.drawMainMenu(screenWidth, screenHeight, startButton, colors)
     -- Feature 1: Collect blobs
     love.graphics.setFont(love.graphics.newFont(20))
     love.graphics.setColor(colors.ui_text)
-    love.graphics.printf("💛 Collect 5 yellow blobs to unlock the exit", 0, textY, screenWidth, "center")
+    love.graphics.printf("💛 Collect yellow blobs to unlock the exit", 0, textY, screenWidth, "center")
     
     -- Feature 2: Avoid dangers
     love.graphics.printf("⚠️ Avoid grey tiles and purple enemies", 0, textY + textSpacing, screenWidth, "center")
@@ -184,7 +186,9 @@ function Rendering.drawUI(playerData, screenHeight, restartButton, colors)
     local startY = boxY + 50
     
     love.graphics.print("Level: " .. (playerData.currentLevel or 1), boxX + 20, startY)
-    love.graphics.print("Blobs: " .. playerData.score .. "/" .. GameConfig.REQUIRED_COLLECTIBLES, boxX + 20, startY + lineHeight)
+    local currentTheme = LevelManager.getCurrentLevel()
+    local requiredScore = LevelConfig.getRequiredScore(currentTheme)
+    love.graphics.print("Blobs: " .. playerData.score .. "/" .. requiredScore, boxX + 20, startY + lineHeight)
     love.graphics.print("Health: " .. playerData.health .. "/" .. playerData.maxHealth, boxX + 20, startY + lineHeight * 2)
     
     -- Draw immunity status with better styling

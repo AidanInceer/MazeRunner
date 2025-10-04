@@ -82,7 +82,6 @@ function GameLogic.handleItemCollection(r, c, gameObjects)
             if orb.r == r and orb.c == c and not orb.collected then
                 local boostData = orb:collect()
                 GameState.activateSpeedBoost(boostData.speedMultiplier, boostData.duration)
-                GameState.addScore(5)  -- Add score for collecting speed boost orb
                 collected = true
                 
                 -- Create speed boost particles
@@ -286,16 +285,20 @@ function GameLogic.handlePlayerMovement(key)
         -- Handle item collection
         GameLogic.handleItemCollection(newR, newC, gameObjects)
         
-        -- Check win condition (collect 5 yellow blobs AND reach exit tile)
+        -- Check win condition (collect required yellow blobs AND reach exit tile)
         if gameObjects.maze[newR][newC] == "finale" then
             local playerData = GameState.getPlayerData()
+            local currentTheme = LevelManager.getCurrentLevel()
+            local requiredScore = LevelConfig.getRequiredScore(currentTheme)
             
-            if playerData.score >= GameConfig.REQUIRED_COLLECTIBLES then
+            
+            if playerData.score >= requiredScore then
                 -- Store the current finale position as the next level's spawn position
                 print("DEBUG: Level completed! Storing finale position " .. newR .. ", " .. newC .. " as next spawn")
                 GameState.setPreviousLevelExit(newR, newC)
                 
                 LevelManager.completeLevel()
+                
                 if LevelManager.isGameComplete() then
                     GameState.getAllState().gameWon = true
                     GameState.setGameState(GameConfig.STATES.GAME_WON)
