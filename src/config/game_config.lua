@@ -88,6 +88,7 @@ GameConfig.DIRECTIONS = {
 GameConfig.STATES = {
     MENU = "menu",
     PLAYING = "playing",
+    PAUSED = "paused",
     GAME_OVER = "gameOver",
     GAME_WON = "gameWon",
     INSUFFICIENT_SCORE = "insufficientScore"

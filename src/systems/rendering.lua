@@ -1369,4 +1369,74 @@ function Rendering._drawMoveableCrates(crates, cellSize, offsetX, offsetY)
     end
 end
 
+function Rendering.drawPauseMenu(screenWidth, screenHeight, colors)
+    -- Draw semi-transparent overlay
+    love.graphics.setColor(0, 0, 0, 0.7)
+    love.graphics.rectangle("fill", 0, 0, screenWidth, screenHeight)
+    
+    -- Draw pause menu box
+    local boxWidth = 400
+    local boxHeight = 300
+    local boxX = (screenWidth - boxWidth) / 2
+    local boxY = (screenHeight - boxHeight) / 2
+    
+    -- Draw box background with gradient effect
+    love.graphics.setColor(0.1, 0.1, 0.2, 0.95)
+    love.graphics.rectangle("fill", boxX, boxY, boxWidth, boxHeight)
+    
+    -- Draw box border with inner shadow
+    love.graphics.setColor(0.05, 0.05, 0.15, 1)
+    love.graphics.rectangle("fill", boxX + 2, boxY + 2, boxWidth - 4, boxHeight - 4)
+    
+    -- Draw outer border
+    love.graphics.setColor(0.3, 0.3, 0.5, 1)
+    love.graphics.setLineWidth(3)
+    love.graphics.rectangle("line", boxX, boxY, boxWidth, boxHeight)
+    
+    -- Draw inner border
+    love.graphics.setColor(0.5, 0.5, 0.7, 1)
+    love.graphics.setLineWidth(1)
+    love.graphics.rectangle("line", boxX + 3, boxY + 3, boxWidth - 6, boxHeight - 6)
+    
+    -- Draw title
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.setFont(love.graphics.newFont(36))
+    local titleText = "PAUSED"
+    local titleWidth = love.graphics.getFont():getWidth(titleText)
+    love.graphics.print(titleText, boxX + (boxWidth - titleWidth) / 2, boxY + 40)
+    
+    -- Draw instructions
+    love.graphics.setFont(love.graphics.newFont(18))
+    local instructionText = "Press P or ESC to resume"
+    local instructionWidth = love.graphics.getFont():getWidth(instructionText)
+    love.graphics.print(instructionText, boxX + (boxWidth - instructionWidth) / 2, boxY + 120)
+    
+    -- Draw additional info
+    love.graphics.setFont(love.graphics.newFont(14))
+    local infoText = "Game is paused - all timers and movement stopped"
+    local infoWidth = love.graphics.getFont():getWidth(infoText)
+    love.graphics.print(infoText, boxX + (boxWidth - infoWidth) / 2, boxY + 160)
+    
+    -- Draw decorative elements
+    love.graphics.setColor(0.7, 0.7, 0.9, 0.5)
+    love.graphics.setLineWidth(2)
+    
+    -- Draw corner decorations
+    local cornerSize = 20
+    love.graphics.line(boxX + 10, boxY + 10, boxX + cornerSize, boxY + 10)
+    love.graphics.line(boxX + 10, boxY + 10, boxX + 10, boxY + cornerSize)
+    
+    love.graphics.line(boxX + boxWidth - 10, boxY + 10, boxX + boxWidth - cornerSize, boxY + 10)
+    love.graphics.line(boxX + boxWidth - 10, boxY + 10, boxX + boxWidth - 10, boxY + cornerSize)
+    
+    love.graphics.line(boxX + 10, boxY + boxHeight - 10, boxX + cornerSize, boxY + boxHeight - 10)
+    love.graphics.line(boxX + 10, boxY + boxHeight - 10, boxX + 10, boxY + boxHeight - cornerSize)
+    
+    love.graphics.line(boxX + boxWidth - 10, boxY + boxHeight - 10, boxX + boxWidth - cornerSize, boxY + boxHeight - 10)
+    love.graphics.line(boxX + boxWidth - 10, boxY + boxHeight - 10, boxX + boxWidth - 10, boxY + boxHeight - cornerSize)
+    
+    love.graphics.setLineWidth(1)
+    love.graphics.setColor(1, 1, 1, 1)
+end
+
 return Rendering

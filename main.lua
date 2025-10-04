@@ -28,6 +28,13 @@ end
 
 
 function love.update(dt)
+    local gameState = GameState.getGameState()
+    
+    -- Skip game logic updates when paused
+    if gameState == GameConfig.STATES.PAUSED then
+        return
+    end
+    
     local animationData = GameState.getAnimationData()
     
     if animationData.hitFlashTimer > 0 then
@@ -52,6 +59,19 @@ function love.draw()
     if gameState == GameConfig.STATES.MENU then
         local uiElements = GameState.getUIElements()
         Rendering.drawMainMenu(screenWidth, screenHeight, uiElements.startButton, LevelManager.getCurrentColors())
+    elseif gameState == GameConfig.STATES.PAUSED then
+        -- Draw the game in the background (dimmed)
+        local gameObjects = GameState.getGameObjects()
+        local playerData = GameState.getPlayerData()
+        local animationData = GameState.getAnimationData()
+        
+        -- Draw game with dimmed overlay
+        love.graphics.setColor(0.3, 0.3, 0.3, 1)  -- Dim the game
+        Rendering.drawGame(screenWidth, screenHeight, gameObjects.maze, gameObjects, playerData, animationData, LevelManager.getCurrentColors())
+        love.graphics.setColor(1, 1, 1, 1)  -- Reset color
+        
+        -- Draw pause menu overlay
+        Rendering.drawPauseMenu(screenWidth, screenHeight, LevelManager.getCurrentColors())
     else
         local gameObjects = GameState.getGameObjects()
         local playerData = GameState.getPlayerData()
@@ -126,6 +146,12 @@ function love.keypressed(key)
     end
     
     if gameState == GameConfig.STATES.PLAYING then
+        -- Handle pause key
+        if key == "p" then
+            GameState.setGameState(GameConfig.STATES.PAUSED)
+            return
+        end
+        
         -- Handle movement keys for continuous movement
         if key == "w" or key == "a" or key == "s" or key == "d" or 
            key == "up" or key == "left" or key == "down" or key == "right" then
@@ -133,6 +159,12 @@ function love.keypressed(key)
             GameState.setHeldKey(key, true)
             GameLogic.handlePlayerMovement(key)
             GameState.setPlayerMoveTimer(0)  -- Reset timer for immediate response
+        end
+    elseif gameState == GameConfig.STATES.PAUSED then
+        -- Handle unpause key
+        if key == "p" or key == "escape" then
+            GameState.setGameState(GameConfig.STATES.PLAYING)
+            return
         end
     elseif gameState == GameConfig.STATES.INSUFFICIENT_SCORE then
         GameState.setGameState(GameConfig.STATES.PLAYING)
