@@ -1,12 +1,12 @@
 function love.conf(t)
-  t.identity = "game mvp"
+  t.identity = "Mazer Runner"
   t.appendidentity = false
   t.version = "11.5"
   t.console = false
 
-  t.window.title = "game mvp"
-  t.window.width = 1280
-  t.window.height = 720
+  t.window.title = "Mazer Runner"
+  t.window.width = 1920
+  t.window.height = 1080
   t.window.resizable = true
   t.window.vsync = 1
   t.window.highdpi = true

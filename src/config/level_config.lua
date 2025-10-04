@@ -45,7 +45,7 @@ LevelConfig.COLORS = Colors.THEMES
 LevelConfig.LEVEL_SETTINGS = {
     [LevelConfig.THEMES.FOREST] = {
         -- Enemy counts (Easy - Tutorial level)
-        defaultEnemyCount = 6,
+        defaultEnemyCount = 3,
         poisonEnemyCount = 0,
         splashEnemyCount = 0,
         lightningEnemyCount = 1,
@@ -54,12 +54,12 @@ LevelConfig.LEVEL_SETTINGS = {
         collectibleCount = 6,
         damageTileCount = 8,
         healthBlobCount = 2,
-        immunityBlobCount = 2,
+        immunityBlobCount = 3,
         requiredScore = 5
     },
     [LevelConfig.THEMES.CAVE] = {
         -- Enemy counts (Easy+)
-        defaultEnemyCount = 7,
+        defaultEnemyCount = 4,
         poisonEnemyCount = 1,
         splashEnemyCount = 1,
         lightningEnemyCount = 0,
@@ -68,89 +68,91 @@ LevelConfig.LEVEL_SETTINGS = {
         collectibleCount = 7,
         damageTileCount = 10,
         healthBlobCount = 2,
-        immunityBlobCount = 3,
+        immunityBlobCount = 4,
         requiredScore = 6
     },
     [LevelConfig.THEMES.VOID] = {
         -- Enemy counts (Medium-)
-        defaultEnemyCount = 11,
+        defaultEnemyCount = 5,
         poisonEnemyCount = 1,
-        splashEnemyCount = 2,
+        splashEnemyCount = 1,
         lightningEnemyCount = 1,
         blobEnemyCount = 0,
         -- Item counts
         collectibleCount = 8,
         damageTileCount = 13,
         healthBlobCount = 2,
-        immunityBlobCount = 4,
+        immunityBlobCount = 5,
         requiredScore = 8
     },
     [LevelConfig.THEMES.ABYSS] = {
         -- Enemy counts (Medium)
-        defaultEnemyCount = 13,
-        poisonEnemyCount = 2,
-        splashEnemyCount = 2,
+        defaultEnemyCount = 6,
+        poisonEnemyCount = 1,
+        splashEnemyCount = 1,
+        lightningEnemyCount = 1,
+        blobEnemyCount = 1,
         -- Item counts
         collectibleCount = 9,
         damageTileCount = 16,
         healthBlobCount = 2,
-        immunityBlobCount = 4,
+        immunityBlobCount = 5,
         requiredScore = 10
     },
     [LevelConfig.THEMES.VOLCANO] = {
         -- Enemy counts (Medium+)
-        defaultEnemyCount = 16,
-        poisonEnemyCount = 2,
-        splashEnemyCount = 3,
+        defaultEnemyCount = 7,
+        poisonEnemyCount = 1,
+        splashEnemyCount = 2,
         lightningEnemyCount = 1,
         blobEnemyCount = 1,
         -- Item counts
         collectibleCount = 10,
         damageTileCount = 20,
         healthBlobCount = 2,
-        immunityBlobCount = 5,
+        immunityBlobCount = 7,
         requiredScore = 12
     },
     [LevelConfig.THEMES.ARCTIC] = {
         -- Enemy counts (Hard-)
-        defaultEnemyCount = 18,
-        poisonEnemyCount = 3,
-        splashEnemyCount = 4,
+        defaultEnemyCount = 8,
+        poisonEnemyCount = 2,
+        splashEnemyCount = 2,
         lightningEnemyCount = 1,
         blobEnemyCount = 1,
         -- Item counts
         collectibleCount = 11,
         damageTileCount = 24,
         healthBlobCount = 2,
-        immunityBlobCount = 5,
+        immunityBlobCount = 7,
         requiredScore = 14
     },
     [LevelConfig.THEMES.DESERT] = {
         -- Enemy counts (Hard)
-        defaultEnemyCount = 20,
-        poisonEnemyCount = 3,
-        splashEnemyCount = 5,
+        defaultEnemyCount = 9,
+        poisonEnemyCount = 2,
+        splashEnemyCount = 2,
         lightningEnemyCount = 1,
-        blobEnemyCount = 1,
+        blobEnemyCount = 2,
         -- Item counts
         collectibleCount = 12,
         damageTileCount = 28,
         healthBlobCount = 2,
-        immunityBlobCount = 6,
+        immunityBlobCount = 8,
         requiredScore = 16
     },
     [LevelConfig.THEMES.NEBULA] = {
         -- Enemy counts (Hard+)
-        defaultEnemyCount = 20,
-        poisonEnemyCount = 3,
-        splashEnemyCount = 6,
-        lightningEnemyCount = 1,
-        blobEnemyCount = 1,
+        defaultEnemyCount = 10,
+        poisonEnemyCount = 2,
+        splashEnemyCount = 2,
+        lightningEnemyCount = 2,
+        blobEnemyCount = 2,
         -- Item counts
         collectibleCount = 13,
         damageTileCount = 32,
         healthBlobCount = 2,
-        immunityBlobCount = 7,
+        immunityBlobCount = 9,
         requiredScore = 18
     }
 }

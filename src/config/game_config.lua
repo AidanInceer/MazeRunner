@@ -2,8 +2,8 @@
 local GameConfig = {}
 
 -- Game dimensions
-GameConfig.MAZE_ROWS = 20
-GameConfig.MAZE_COLS = 20
+GameConfig.MAZE_ROWS = 30
+GameConfig.MAZE_COLS = 30
 
 -- Game objectives
 GameConfig.MAX_SCORE = 10
@@ -34,7 +34,7 @@ GameConfig.ENEMY_SPEEDS = {
 GameConfig.ENEMY_DAMAGE = {
     DEFAULT = 20,      -- Damage from default enemy collision
     POISON = 0,        -- Poison enemies don't deal direct damage (they poison)
-    SPLASH = 20,       -- Damage from splash enemy collision
+    SPLASH = 10,       -- Damage from splash enemy collision
     LIGHTNING = 20,    -- Damage from lightning enemy collision
     BLOB = 20          -- Damage from blob enemy collision
 }
@@ -43,22 +43,22 @@ GameConfig.ENEMY_DAMAGE = {
 GameConfig.TILE_DAMAGE = {
     DAMAGE_TILE = 10,  -- Damage from regular damage tiles
     POISON_TILE = 0,   -- Poison tiles don't deal direct damage (they poison)
-    SPLASH_TILE = 33   -- Damage from splash enemy burning tiles
+    SPLASH_TILE = 15   -- Damage from splash enemy burning tiles
 }
 
 -- Legacy values for backward compatibility
 GameConfig.ENEMY_DAMAGE_LEGACY = 20
 GameConfig.DAMAGE_TILE_DAMAGE = 10
-GameConfig.SPLASH_TILE_DAMAGE = 33
+GameConfig.SPLASH_TILE_DAMAGE = 15
 
 -- Health restoration settings
 GameConfig.HEALTH_RESTORE = 30  -- Amount of health restored by health blobs
 
 -- Poison settings
 GameConfig.POISON_DAMAGE = 3
-GameConfig.POISON_DURATION = 3  -- seconds of poison effect on player
-GameConfig.POISON_TILE_DURATION = 2  -- seconds poison tile lasts
-GameConfig.POISON_TRAIL_LENGTH = 4  -- number of previous positions to poison
+GameConfig.POISON_DURATION = 2  -- seconds of poison effect on player
+GameConfig.POISON_TILE_DURATION = 1  -- seconds poison tile lasts
+GameConfig.POISON_TRAIL_LENGTH = 3  -- number of previous positions to poison
 
 -- Animation settings
 GameConfig.HIT_FLASH_DURATION = 0.3

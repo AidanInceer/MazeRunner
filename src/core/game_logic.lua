@@ -516,11 +516,12 @@ function GameLogic.updateSplashEnemies(dt)
         end
     end
     
-    -- Check player collision with splash tiles
+    -- Check player collision with splash tiles (only once per tile)
     if splashTiles[playerData.r] and splashTiles[playerData.r][playerData.c] then
-        -- Player is on a splash tile, damage them
+        -- Player is on a splash tile, damage them and remove the tile
         GameState.takeDamage(GameConfig.TILE_DAMAGE.SPLASH_TILE)
         GameState.setHitFlash(GameConfig.ENEMY_HIT_FLASH_DURATION)
+        splashTiles[playerData.r][playerData.c] = nil  -- Remove tile after damage
     end
     
     -- Update the game objects with the modified arrays
@@ -558,7 +559,7 @@ function GameLogic.updateBlobEnemies(dt)
                     blobEnemy.r = -1  -- Mark for removal
                     GameState.killEnemy()
                 elseif result == "damaged" then
-                    GameState.damagePlayer(GameConfig.ENEMY_DAMAGE.BLOB)
+                    GameState.takeDamage(GameConfig.ENEMY_DAMAGE.BLOB)
                     GameState.setHitFlash(GameConfig.ENEMY_HIT_FLASH_DURATION)
                 end
             end
@@ -599,7 +600,7 @@ function GameLogic.updateLightningEnemies(dt)
                     lightningEnemy.r = -1  -- Mark for removal
                     GameState.killEnemy()
                 elseif result == "damaged" then
-                    GameState.damagePlayer(GameConfig.ENEMY_DAMAGE.LIGHTNING)
+                    GameState.takeDamage(GameConfig.ENEMY_DAMAGE.LIGHTNING)
                     GameState.setHitFlash(GameConfig.ENEMY_HIT_FLASH_DURATION)
                 end
             end
